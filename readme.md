@@ -1,8 +1,15 @@
-add£º
-1.×Ô¶¯»»ĞĞ
-2.½á¹û¸´ÖÆµ½Õ³Ìù°å
+ç°æœ‰åŠŸèƒ½ï¼š
+1.è‡ªåŠ¨æ¢è¡Œ
+2.ç»“æœå¤åˆ¶åˆ°ç²˜è´´æ¿
 
-´ıÊµÏÖ£º
-1.½ØÍ¼
-2.¶àÎÄ¼şË³Ğò¶ÁÈ¡
-2019.06.22 The last edit
+å¾…å®ç°ï¼š
+1.æˆªå›¾
+2.å¤šæ–‡ä»¶é¡ºåºè¯»å–
+
+Existing functions: 
+1. Word wrap 2. Copy the results to the sticker
+To be implemented: 
+1. Screenshot 2. Sequential reading of multiple files
+
+
+2019.07.03 The last edit
