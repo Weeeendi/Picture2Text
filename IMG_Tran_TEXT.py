@@ -49,7 +49,7 @@ def Transform_GT(accuracy_option):
     root.withdraw()
     file_path = filedialog.askopenfilename(
         title='打开需要识别的图片',
-        filetypes=[('JPG','*.jpg'),('BMP','*.bmp'),('PNG','*.bmp')])  # 获取文件的打开路径
+        filetypes=[('JPG','*.jpg'),('BMP','*.bmp'),('PNG','*.png')])  # 获取文件的打开路径
 
     print(file_path)
     file_path = str(file_path)
