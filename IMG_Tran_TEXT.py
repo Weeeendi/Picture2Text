@@ -1,13 +1,13 @@
-import pyperclip
 from aip import AipOcr
 
+import pyperclip
 import tkinter as tk
 from tkinter import filedialog
 
 High_precision = 1
 Low_precision = 0
 
-
+''' Judging whether a line break is needed '''
 def IS_Linefeed(sentence):
     flag = 0
     Linefeed_sign = {'.','。',':','：'}
@@ -30,7 +30,7 @@ def get_file_content(filePath):
 return: none
 parm:选择是高精度还是低精度 1.高精度 0。低精度
 """
-def Transform_GT(accuracy_option):
+def Transform_GT(accuracy_option,image = 0):
     
     Recognize = accuracy_option
 
@@ -47,15 +47,20 @@ def Transform_GT(accuracy_option):
 
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(
-        title='打开需要识别的图片',
-        filetypes=[('JPG','*.jpg'),('BMP','*.bmp'),('PNG','*.png')])  # 获取文件的打开路径
+    ''' If there is no incoming image data, the picture needs to be opened. '''
+    if image == 0:
+        file_path = filedialog.askopenfilename(
+            title='打开需要识别的图片',
+            filetypes=[('JPG','*.jpg'),('BMP','*.bmp'),('PNG','*.png')])  # 获取文件的打开路径
 
-    print(file_path)
-    file_path = str(file_path)
-   
-    image = get_file_content(file_path)
-    
+        print(file_path)
+        file_path = str(file_path)
+
+        '''Distinguish between have been caught image and no image'''
+        
+        image = get_file_content(file_path)
+
+
     """ Generasion object Calling """
     try:
         client.basicGeneral(image)
@@ -98,6 +103,7 @@ def Transform_GT(accuracy_option):
     print(words_buffer)
     return words_buffer
     ##spam = pyperclip.paste()
+
 
 
 if __name__ == "__main__":

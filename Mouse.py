@@ -1,34 +1,14 @@
-#!/usr/bin/python
-# -*- coding: UTF-8 -*-
-
-from PIL import Image, ImageGrab
-from time import sleep
-
-import pyperclip
+import tkinter
+import tkinter.filedialog
 import os
-import tkinter as tk          # 导入 Tkinter 库
-import tkinter.messagebox
-
-import IMG_Tran_TEXT as Itt
-# import snippaste as sp 使用外部工具
-
-root = tk.Tk()                     # 创建窗口对象的背景色
-root.title('图像转文字v1.0')
-root.geometry("300x150")
-                                # 创建两个列表
-def TransCallback():
-    tkinter.messagebox.showinfo( "翻译结果", pyperclip.paste())
-
-var= tk.StringVar()
-
-B = tk.Button(root, text="打开图像",command = lambda:translated(),width=10)
-G = tk.Button(root, text="屏幕截图", command=lambda:buttonCaptureClick(), width=10)
-D = tk.Button(root,text = "显示结果",command = lambda:TransCallback(),width=10)
-Notice = tk.Label(root, textvariable=var, fg='blue', font=('Microsoft Yahei', 10), width=30, height=2)
-
+from PIL import ImageGrab
+from time import sleep
+root = tkinter.Tk()
+#设置窗口大小与位置
+root.geometry('100x40+400+300')
+#设置窗口大小不可改变
 root.resizable(False, False)
 #用来显示全屏幕截图并响应二次截图的窗口类
-
 
 class MyCapture:
     def __init__(self, png):
@@ -38,7 +18,7 @@ class MyCapture:
         #屏幕尺寸
         screenWidth = root.winfo_screenwidth()
         screenHeight = root.winfo_screenheight()
-
+        
         #创建顶级组件容器
         self.top = tkinter.Toplevel(
             root, width=screenWidth, height=screenHeight)
@@ -56,8 +36,8 @@ class MyCapture:
         def onRightButtonDown(event):
             self.top.destroy()
             os.remove(filename)
-            root.state('normal')
-        self.canvas.bind('<Button-3>', onRightButtonDown)
+            root.state('normal')           
+        self.canvas.bind('<Button-3>',onRightButtonDown)
 
         #鼠标左键按下的位置
         def onLeftButtonDown(event):
@@ -98,8 +78,6 @@ class MyCapture:
             #弹出保存截图对话框
             file_path = './somefile.png'
             pic.save(file_path, 'PNG')
-            sleep(1)
-
             '''
             fileName = tkinter.filedialog.asksaveasfilename(
                 title='保存截图', filetypes=[('image', '*.jpg *.png')])
@@ -132,35 +110,16 @@ def buttonCaptureClick():
     im.close()
     #显示全屏幕截图
     w = MyCapture(filename)
-    G.wait_window(w.top)
+    buttonCapture.wait_window(w.top)
     #截图结束，恢复主窗口，并删除临时的全屏幕截图文件
     root.state('normal')
     os.remove(filename)
-    Catch_chipboard()
 
 
+buttonCapture = tkinter.Button(root, text='截图', command=buttonCaptureClick)
 
-def Catch_chipboard():
+buttonCapture.place(x=10, y=10, width=80, height=20)
 
-    file_path = './somefile.png'
-    image = Itt.get_file_content(file_path)
-    if Itt.Transform_GT(Itt.High_precision, image):
-        var.set('识别完成，结果已复制到粘贴板')
-    else:        
-        var.set('')    
+#启动消息主循环
 
-
-
-def translated():
-    if Itt.Transform_GT(Itt.High_precision):
-        var.set('识别完成，结果已复制到粘贴板')
-    else:
-        var.set('')
-
-B.pack()
-G.pack()
-D.pack()
-Notice.pack()
-                # 将小部件放置到主窗口中
-root.mainloop() 
- 
+root.mainloop()
