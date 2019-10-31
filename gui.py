@@ -17,12 +17,12 @@ root.title('图像转文字v1.0')
 root.geometry("300x150")
                                 # 创建两个列表
 def TransCallback():
-    tkinter.messagebox.showinfo( "翻译结果", pyperclip.paste())
+    tkinter.messagebox.showinfo( "识别结果", pyperclip.paste())
 
 var= tk.StringVar()
 
 B = tk.Button(root, text="打开图像",command = lambda:translated(),width=10)
-G = tk.Button(root, text="屏幕截图", command=lambda:buttonCaptureClick(), width=10)
+G = tk.Button(root, text="屏幕截图", command=lambda:buttonCaptureClick(),width=10)
 D = tk.Button(root,text = "显示结果",command = lambda:TransCallback(),width=10)
 Notice = tk.Label(root, textvariable=var, fg='blue', font=('Microsoft Yahei', 10), width=30, height=2)
 
@@ -138,6 +138,10 @@ def buttonCaptureClick():
     os.remove(filename)
     Catch_chipboard()
 
+"""Keyboard overwatch"""
+def call_back(event):
+    buttonCaptureClick()
+root.bind("<Control-Shift-KeyPress-S>", call_back)
 
 
 def Catch_chipboard():

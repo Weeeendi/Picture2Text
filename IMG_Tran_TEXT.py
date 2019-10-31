@@ -81,7 +81,7 @@ def Transform_GT(accuracy_option,image = 0):
     print("识别结果如下，共识别出 {[words_result_num]} 段文字".format(word))
     data_layer = "words_result"
 
-
+    """创建一个空字符串来存储结果"""
     words_buffer = ""
 
     for layer in word.keys():
@@ -89,8 +89,7 @@ def Transform_GT(accuracy_option,image = 0):
             layer_obj = word[layer]
             for layer1 in layer_obj:
                 if isinstance(layer1, dict):
-                    try:
-                        
+                    try:                        
                         if IS_Linefeed("{[words]}".format(layer1)):                           
                             words_buffer += ("{[words]}".format(layer1) + "\n")
                         else:                          
