@@ -1,33 +1,70 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
+from statistics import fmean
+from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
+
+from turtle import down
 from PIL import Image, ImageGrab
 from time import sleep
 
 import pyperclip
 import os
 import tkinter as tk          # 导入 Tkinter 库
+from tkinter import BOTTOM, Y, ttk 
 import tkinter.messagebox
 
 import IMG_Tran_TEXT as Itt
-# import snippaste as sp 使用外部工具
+import Text_transAPI as TextT
+
+#默认配置项
+default_lang = 'en'
 
 root = tk.Tk()                     # 创建窗口对象的背景色
-root.title('图像转文字v1.0')
-root.geometry("300x150")
-                                # 创建两个列表
+root.title('图像转文字 v2.0')
+root.geometry('500x300')
+
+
+fm1 = ttk.Frame()
+fm2 = ttk.Frame()
+fm3 = ttk.Frame()
+
+def clearEdit(Editx):
+        Editx.delete('1.0',END)
+        Editx.configure(fg='black')  # 修改字体颜色，修改其它参数只需要传入对应的参数即可
+
+
+#图片识别的结果显示在Edit1
+def OcrDisplayCallback():
+    Edit1.insert(INSERT,pyperclip.paste())
+
+
 def TransCallback():
-    tkinter.messagebox.showinfo( "识别结果", pyperclip.paste())
+    clearEdit(Edit2)
+    var = TextT.TextTranslate(default_lang,Edit1.get('1.0',END))
+    Edit2.insert(INSERT,var)
+    fm3.pack(side=LEFT, fill=BOTH, expand=YES)
 
 var= tk.StringVar()
 
-B = tk.Button(root, text="打开图像",command = lambda:translated(),width=10)
-G = tk.Button(root, text="屏幕截图", command=lambda:buttonCaptureClick(),width=10)
-D = tk.Button(root,text = "显示结果",command = lambda:TransCallback(),width=10)
-Notice = tk.Label(root, textvariable=var, fg='blue', font=('Microsoft Yahei', 10), width=30, height=2)
+B = ttk.Button(fm1, text="打开图像",command = lambda:Ocrtranslated(),width=10)
+G = ttk.Button(fm1, text="屏幕截图",command=lambda:buttonCaptureClick(),width=10)
+D = ttk.Button(fm1,text = "显示结果",command = lambda:OcrDisplayCallback(),width=10)
+Notice = ttk.Label(fm1,anchor='center',textvariable=var, wraplength = 150,foreground='grey', font=('Microsoft Yahei', 10), width=10)
+var.set('请打开图片或截图')
 
-root.resizable(False, False)
-#用来显示全屏幕截图并响应二次截图的窗口类
+#窗口大小不可变化
+#root.resizable(False, False)  
+
+#在图形界面上设定输入框控件entry并放置控件
+#Edit1 = tk.Text(fm1, show='*', font=('Courier New', 12))   # 显示成密文形式
+#Edit2 = tk.Text(fm3, show=None, font=('Courier New', 12))  # 显示成明文形式
+OcrRes = ttk.Label(fm2, text='识别结果', font=('Microsoft Yahei', 10), width=10)
+Edit1 = tk.Text(fm2,width=10, height=5, undo = True,font=("Microsoft Yahei",10))
+
+TransButton = ttk.Button(fm2,text = "翻译 >",command = lambda:TransCallback(),width=10)
+TransRes = ttk.Label(fm3, text='翻译结果', font=('Microsoft Yahei', 10), width=10)
+Edit2 = tk.Text(fm3,width=10, height=5, undo = True,font=("Microsoft Yahei",10))
 
 
 class MyCapture:
@@ -46,7 +83,7 @@ class MyCapture:
         #不显示最大化、最小化按钮
         self.top.overrideredirect(True)
         self.canvas = tkinter.Canvas(
-            self.top, bg='white', width=screenWidth, height=screenHeight)
+            self.top, bg='blue', width=screenWidth, height=screenHeight)
 
         #显示全屏截图，在全屏截图上进行区域截图
         self.image = tkinter.PhotoImage(file=png)
@@ -117,8 +154,9 @@ class MyCapture:
  #开始截图
 
 
-def buttonCaptureClick():
 
+#用来显示全屏幕截图并响应二次截图的窗口类
+def buttonCaptureClick():
     #最小化主窗口
     root.state('icon')
     sleep(0.2)
@@ -138,6 +176,8 @@ def buttonCaptureClick():
     os.remove(filename)
     Catch_chipboard()
 
+
+
 """Keyboard overwatch"""
 def call_back(event):
     buttonCaptureClick()
@@ -155,16 +195,75 @@ def Catch_chipboard():
 
 
 
-def translated():
+def Ocrtranslated():
     if Itt.Transform_GT(Itt.High_precision):
         var.set('识别完成，结果已复制到粘贴板')
     else:
         var.set('')
 
-B.pack()
-G.pack()
-D.pack()
-Notice.pack()
-                # 将小部件放置到主窗口中
+
+#右键 剪切复制黏贴
+def callback1(event=None):
+    global root
+    Edit1.event_generate('<<Cut>>')
+    Edit2.event_generate('<<Cut>>')
+    
+def callback2(event=None):
+    global root
+    Edit1.event_generate('<<copy>>')
+    Edit2.event_generate('<<copy>>')
+    
+def callback3(event=None):
+    global root
+    Edit1.event_generate('<<Paste>>')
+    Edit2.event_generate('<<Paste>>')
+
+def callback4(event=None):
+    global root
+    Edit1.event_generate('<<Paste>>')
+    Edit2.event_generate('<<Paste>>')
+
+'''创建一个弹出菜单'''
+menu = tk.Menu(root,
+            tearoff=False,
+            #bg="grey",
+            )
+menu.add_command(label="剪切", command=callback1)
+menu.add_command(label="复制", command=callback2)
+menu.add_command(label="黏贴", command=callback3)
+
+def popup(event):
+    menu.post(event.x_root, event.y_root)   # post在指定的位置显示弹出菜单
+
+Edit1.bind("<Button-3>", popup)                 # 绑定鼠标右键,执行popup函数
+Edit2.bind("<Button-3>", popup)                 # 绑定鼠标右键,执行popup函数
+
+
+#--------------右键弹窗End--------------------------
+
+
+def popup(event):
+    menu.post(event.x_root, event.y_root)   # post在指定的位置显示弹出菜单
+
+#Frame1
+B.pack(side=TOP,anchor=W,fill=X,expand=N)
+G.pack(side=TOP,anchor=W,fill=X,expand=N)
+D.pack(side=TOP,anchor=W,fill=X,expand=N)
+Notice.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
+
+#Frame2
+OcrRes.pack(side=TOP,anchor=W,fill=X,expand=N) 
+Edit1.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
+TransButton.pack(side=BOTTOM,anchor=W,fill=X,expand=N)
+
+#Frame3
+TransRes.pack(side=TOP,anchor=W,fill=X,expand=N) 
+Edit2.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
+
+fm1.pack(side=LEFT, fill=BOTH, expand=YES)
+fm2.pack(side=LEFT, fill=BOTH, expand=YES)
+fm3.forget()
+
+# 将小部件放置到主窗口中
 root.mainloop() 
  

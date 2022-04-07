@@ -27,7 +27,7 @@ def get_file_content(filePath):
         return 0
 
 """ Transform graph to text 
-return: none
+return: 转换后的字符
 parm:选择是高精度还是低精度 1.高精度 0。低精度
 """
 def Transform_GT(accuracy_option,image = 0):
