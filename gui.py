@@ -1,33 +1,37 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-from statistics import fmean
+from email import message
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
 
-from turtle import down
 from PIL import Image, ImageGrab
 from time import sleep
 
 import pyperclip
 import os
 import tkinter as tk          # 导入 Tkinter 库
-from tkinter import BOTTOM, Y, ttk 
+from tkinter import Y,ttk
+from tkinter import * 
 import tkinter.messagebox
-
+import traceback
 import IMG_Tran_TEXT as Itt
 import Text_transAPI as TextT
 
+
+About = "版本号信息 v1.2 \n 一款小而美的Ocr软件，该软件仅用于交流学习应用，禁止任何形式的商用行为" 
+
 #默认配置项
 default_lang = 'en'
+current_lang = default_lang
 
 root = tk.Tk()                     # 创建窗口对象的背景色
 root.title('图像转文字 v2.0')
 root.geometry('500x300')
 
 
-fm1 = ttk.Frame()
-fm2 = ttk.Frame()
-fm3 = ttk.Frame()
+fm1 = ttk.Frame(root)
+fm2 = ttk.Frame(root)
+fm3 = ttk.Frame(root)
 
 def clearEdit(Editx):
         Editx.delete('1.0',END)
@@ -36,35 +40,106 @@ def clearEdit(Editx):
 
 #图片识别的结果显示在Edit1
 def OcrDisplayCallback():
+    clearEdit(Edit1)
+    clearEdit(Edit2)
     Edit1.insert(INSERT,pyperclip.paste())
 
 
 def TransCallback():
     clearEdit(Edit2)
-    var = TextT.TextTranslate(default_lang,Edit1.get('1.0',END))
+    var = TextT.TextTranslate(current_lang,Edit1.get('1.0',END))
     Edit2.insert(INSERT,var)
     fm3.pack(side=LEFT, fill=BOTH, expand=YES)
 
 var= tk.StringVar()
 
-B = ttk.Button(fm1, text="打开图像",command = lambda:Ocrtranslated(),width=10)
-G = ttk.Button(fm1, text="屏幕截图",command=lambda:buttonCaptureClick(),width=10)
-D = ttk.Button(fm1,text = "显示结果",command = lambda:OcrDisplayCallback(),width=10)
-Notice = ttk.Label(fm1,anchor='center',textvariable=var, wraplength = 150,foreground='grey', font=('Microsoft Yahei', 10), width=10)
+starkabe = tk.PhotoImage(file = "star.png")
+  
+B = ttk.Button(fm1, text="打开图像",command = lambda:Ocrtranslated(),width=5)
+G = ttk.Button(fm1, text="屏幕截图",command=lambda:buttonCaptureClick(),width=5)
+D = ttk.Button(fm1,text = "显示结果",command = lambda:OcrDisplayCallback(),width=5)
+
+#具体用法
+
+Notice = ttk.Label(fm1,anchor='center',image=starkabe,textvariable=var, wraplength = 130,foreground='grey', font=('Microsoft Yahei', 10),compound="top")
 var.set('请打开图片或截图')
 
 #窗口大小不可变化
-#root.resizable(False, False)  
+#root.resizable(True, False)  
 
 #在图形界面上设定输入框控件entry并放置控件
 #Edit1 = tk.Text(fm1, show='*', font=('Courier New', 12))   # 显示成密文形式
 #Edit2 = tk.Text(fm3, show=None, font=('Courier New', 12))  # 显示成明文形式
 OcrRes = ttk.Label(fm2, text='识别结果', font=('Microsoft Yahei', 10), width=10)
-Edit1 = tk.Text(fm2,width=10, height=5, undo = True,font=("Microsoft Yahei",10))
+Edit1 = tk.Text(fm2,width=10, height=5,padx=1,pady=1, undo = True,font=("Microsoft Yahei",10))
 
 TransButton = ttk.Button(fm2,text = "翻译 >",command = lambda:TransCallback(),width=10)
 TransRes = ttk.Label(fm3, text='翻译结果', font=('Microsoft Yahei', 10), width=10)
-Edit2 = tk.Text(fm3,width=10, height=5, undo = True,font=("Microsoft Yahei",10))
+Edit2 = tk.Text(fm3,width=10, height=5,padx=1,pady=1, undo = True,font=("Microsoft Yahei",10))
+
+#语言菜单
+languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "spa",
+              "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs"}
+
+v = tk.Variable()
+v.set('英语')
+'''
+OPTIONS = []
+for k,v in languages.items():
+    OPTIONS.append(k)
+'''
+
+def setlang(event): 
+    global current_lang  
+    print(v.get())
+    current_lang = languages.get(v.get())  
+
+
+TransChoose = ttk.OptionMenu(fm2, v , '',
+                            "英语", 
+                            "简中", 
+                            "日语",
+                            "西班牙语",
+                            "韩语", 
+                            "繁中",
+                            "意大利语", 
+                            "捷克语"
+                            ,command=setlang)
+
+
+#撤销、重做
+def back():
+    try:
+        Edit1.edit_undo()
+        Edit2.edit_undo()
+    except Exception as e:
+        traceback.print_exc()
+    
+
+def callback():
+    try:
+        Edit1.edit_redo()
+        Edit2.edit_redo()
+    except Exception as e:
+        traceback.print_exc()
+
+
+def showAbout():
+    tkinter.messagebox.showinfo(title='Topic', message= About,)
+
+
+
+#菜单栏
+menubar = tk.Menu(root)
+root.config(menu=menubar)
+
+#添加菜单选项
+menu1 = tk.Menu(menubar,borderwidth = 3,tearoff=False)
+menubar.add_cascade(label="历史记录", menu=menu1)
+
+menubar.add_command(label="关于",command = showAbout)
+menubar.add_command(label="撤销↶",command = back)
+menubar.add_command(label="重做↷",command = callback)
 
 
 class MyCapture:
@@ -84,7 +159,7 @@ class MyCapture:
         self.top.overrideredirect(True)
         self.canvas = tkinter.Canvas(
             self.top, bg='blue', width=screenWidth, height=screenHeight)
-
+        
         #显示全屏截图，在全屏截图上进行区域截图
         self.image = tkinter.PhotoImage(file=png)
         self.canvas.create_image(
@@ -115,7 +190,7 @@ class MyCapture:
             except Exception as e:
                 pass
             lastDraw = self.canvas.create_rectangle(
-                self.X.get(), self.Y.get(), event.x, event.y, outline='black')
+                self.X.get(), self.Y.get(), event.x, event.y, outline='blue')
 
         self.canvas.bind('<B1-Motion>', onLeftButtonMove)
 
@@ -194,12 +269,13 @@ def Catch_chipboard():
         var.set('')    
 
 
-
 def Ocrtranslated():
     if Itt.Transform_GT(Itt.High_precision):
         var.set('识别完成，结果已复制到粘贴板')
     else:
         var.set('')
+
+
 
 
 #右键 剪切复制黏贴
@@ -254,7 +330,9 @@ Notice.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
 #Frame2
 OcrRes.pack(side=TOP,anchor=W,fill=X,expand=N) 
 Edit1.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
-TransButton.pack(side=BOTTOM,anchor=W,fill=X,expand=N)
+TransChoose.pack(side=LEFT,anchor=W,fill=BOTH,expand=Y)
+TransButton.pack(side=LEFT,anchor=W,fill=BOTH,expand=Y)
+
 
 #Frame3
 TransRes.pack(side=TOP,anchor=W,fill=X,expand=N) 

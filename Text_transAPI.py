@@ -25,13 +25,11 @@ endpoint = 'http://api.fanyi.baidu.com'
 path = '/api/trans/vip/translate'
 url = endpoint + path
 
-query = 'Hello World! This is 1st paragraph.\nThis is 2nd paragraph.'
+#query = 'Hello World! This is 1st paragraph.\nThis is 2nd paragraph.'
 
 # Generate salt and sign
 def make_md5(s, encoding='utf-8'):
     return md5(s.encode(encoding)).hexdigest()
-
-
 
 def TextTranslate(to_lang,srcText,from_lang = 'auto'):
     r"""Translate src text to dst text.
