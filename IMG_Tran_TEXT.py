@@ -8,30 +8,36 @@ High_precision = 1
 Low_precision = 0
 
 ''' Judging whether a line break is needed '''
+
+
 def IS_Linefeed(sentence):
     flag = 0
-    Linefeed_sign = {'.','。',':','：'}
+    Linefeed_sign = {'.', '。', ':', '：'}
     for sign in Linefeed_sign:
         if sentence.endswith(sign):
             flag = 1
     return flag
-           
 
 
 """ Read image """
+
+
 def get_file_content(filePath):
-    try:   
-        with open(filePath, "rb") as fp:        
+    try:
+        with open(filePath, "rb") as fp:
             return fp.read()
     except FileNotFoundError:
         return 0
+
 
 """ Transform graph to text 
 return: 转换后的字符
 parm:选择是高精度还是低精度 1.高精度 0。低精度
 """
-def Transform_GT(accuracy_option,image = 0):
-    
+
+
+def Transform_GT(accuracy_option, image=0):
+
     Recognize = accuracy_option
 
     """
@@ -51,15 +57,14 @@ def Transform_GT(accuracy_option,image = 0):
     if image == 0:
         file_path = filedialog.askopenfilename(
             title='打开需要识别的图片',
-            filetypes=[('JPG','*.jpg'),('BMP','*.bmp'),('PNG','*.png')])  # 获取文件的打开路径
+            filetypes=[('JPG', '*.jpg'), ('BMP', '*.bmp'), ('PNG', '*.png')])  # 获取文件的打开路径
 
         print(file_path)
         file_path = str(file_path)
 
         '''Distinguish between have been caught image and no image'''
-        
-        image = get_file_content(file_path)
 
+        image = get_file_content(file_path)
 
     """ Generasion object Calling """
     try:
@@ -89,20 +94,19 @@ def Transform_GT(accuracy_option,image = 0):
             layer_obj = word[layer]
             for layer1 in layer_obj:
                 if isinstance(layer1, dict):
-                    try:                        
-                        if IS_Linefeed("{[words]}".format(layer1)):                           
+                    try:
+                        if IS_Linefeed("{[words]}".format(layer1)):
                             words_buffer += ("{[words]}".format(layer1) + "\n")
-                        else:                          
-                            words_buffer += (("{[words]}").format(layer1))
+                        else:
+                            words_buffer += (("{[words]}").format(layer1) + "\n")
                     except KeyError:
                         pass
 
-    #将文本黏贴至剪贴板
+    # 将文本黏贴至剪贴板
     pyperclip.copy(words_buffer)
     print(words_buffer)
     return words_buffer
     ##spam = pyperclip.paste()
-
 
 
 if __name__ == "__main__":

@@ -196,7 +196,7 @@ class SysTrayIcon (object):
         if menu_action == s.QUIT:
             win32gui.DestroyWindow(s.hwnd)
         else:
-            menu_action(s)
+            menu_action()
 
 class _Main:  #调用SysTrayIcon的Demo窗口
     def __init__(s):
@@ -205,11 +205,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
     def main(s):
         #tk窗口
         s.root = tk.Tk()
-        s.root.bind("<Unmap>", lambda event: s.Hidden_window() if s.root.state() == 'iconic' else False) #窗口最小化判断，可以说是调用最重要的一步
+        s.root.bind("<Unmap>", lambda event: s.Hidden_window() if (s.root.state() == 'iconic') else False) #窗口最小化判断，可以说是调用最重要的一步
         s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
         s.root.resizable(0,0)  #锁定窗口大小不能改变
         s.root.mainloop()
-
+    
     def switch_icon(s, _sysTrayIcon, icon = 'D:\\2.ico'):
         #点击右键菜单项目会传递SysTrayIcon自身给引用的函数，所以这里的_sysTrayIcon = s.sysTrayIcon
         #只是一个改图标的例子，不需要的可以删除此函数
@@ -218,11 +218,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         
         #气泡提示的例子
         s.show_msg(title = '图标更换', msg = '图标更换成功！', time = 500)
-
+    
     def show_msg(s, title = '标题', msg = '内容', time = 500):
         s.SysTrayIcon.refresh(title = title, msg = msg, time = time)
 
-    def Hidden_window(s, icon = 'D:\\1.ico', hover_text = "SysTrayIcon.py Demo"):
+    def Hidden_window(s, icon = './image./icon.ico', hover_text = "图文精灵"):
         '''隐藏窗口至托盘区，调用SysTrayIcon的重要函数'''
 
         #托盘图标右键菜单, 格式: ('name', None, callback),下面也是二级菜单的例子

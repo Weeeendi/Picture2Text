@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-from email import message
+from multiprocessing.shared_memory import ShareableList
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
 
 from PIL import Image, ImageGrab
 from time import sleep
+from minIcon import SysTrayIcon
 
 import pyperclip
 import os
@@ -18,7 +19,9 @@ import IMG_Tran_TEXT as Itt
 import Text_transAPI as TextT
 
 
-About = "版本号信息 v1.2 \n 一款小而美的Ocr软件，该软件仅用于交流学习应用，禁止任何形式的商用行为" 
+About = "版本号信息 v1.2 \n\n 一款小而美的Ocr软件\n该软件仅用于交流学习应用，禁止任何形式的商用行为" 
+Shareble = 1
+
 
 #默认配置项
 default_lang = 'en'
@@ -26,16 +29,34 @@ current_lang = default_lang
 
 root = tk.Tk()                     # 创建窗口对象的背景色
 root.title('图像转文字 v2.0')
-root.geometry('500x300')
+root.geometry('500x300+100+100')
 
 
 fm1 = ttk.Frame(root)
 fm2 = ttk.Frame(root)
 fm3 = ttk.Frame(root)
 
+
+def message_askyesno():
+    # Gets the requested values of the height and width.
+    windowWidth = root.winfo_reqwidth()
+    windowHeight = root.winfo_reqheight()
+
+    # Gets both half the screen width/height and window width/height
+    positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
+    positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
+    root.withdraw()  # ****实现主窗口隐藏
+    root.update()  # *********需要update一下
+
+    if(tk.messagebox.askyesno("提示","要执行此操作？")):
+        root.destroy()
+    else:
+        root.deiconify()
+
+
 def clearEdit(Editx):
         Editx.delete('1.0',END)
-        Editx.configure(fg='black')  # 修改字体颜色，修改其它参数只需要传入对应的参数即可
+       # Editx.configure(fg='black')  # 修改字体颜色，修改其它参数只需要传入对应的参数即可
 
 
 #图片识别的结果显示在Edit1
@@ -53,7 +74,7 @@ def TransCallback():
 
 var= tk.StringVar()
 
-starkabe = tk.PhotoImage(file = "star.png")
+starkabe = tk.PhotoImage(file = "./image/background.png")
   
 B = ttk.Button(fm1, text="打开图像",command = lambda:Ocrtranslated(),width=5)
 G = ttk.Button(fm1, text="屏幕截图",command=lambda:buttonCaptureClick(),width=5)
@@ -79,7 +100,7 @@ Edit2 = tk.Text(fm3,width=10, height=5,padx=1,pady=1, undo = True,font=("Microso
 
 #语言菜单
 languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "spa",
-              "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs"}
+              "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs","法语":"fra"}
 
 v = tk.Variable()
 v.set('英语')
@@ -103,7 +124,8 @@ TransChoose = ttk.OptionMenu(fm2, v , '',
                             "韩语", 
                             "繁中",
                             "意大利语", 
-                            "捷克语"
+                            "捷克语",
+                            "法语"
                             ,command=setlang)
 
 
@@ -208,7 +230,7 @@ class MyCapture:
             top, bottom = sorted([self.Y.get(), event.y])
             pic = ImageGrab.grab((left+1, top+1, right, bottom))
             #弹出保存截图对话框
-            file_path = './somefile.png'
+            file_path = './image/somefile.png'
             pic.save(file_path, 'PNG')
             sleep(1)
 
@@ -232,13 +254,17 @@ class MyCapture:
 
 #用来显示全屏幕截图并响应二次截图的窗口类
 def buttonCaptureClick():
+    
+    #当前在截图不支持,最小化判断
+    global Shareble
+    Shareble = 0
     #最小化主窗口
     root.state('icon')
     sleep(0.2)
     global filename
     filename = 'temp.png'
 
-#grab()方法默认对全屏幕进行截图
+    #grab()方法默认对全屏幕进行截图
 
     im = ImageGrab.grab()
     im.save(filename)
@@ -250,18 +276,20 @@ def buttonCaptureClick():
     root.state('normal')
     os.remove(filename)
     Catch_chipboard()
+    Shareble = 1
+
 
 
 
 """Keyboard overwatch"""
 def call_back(event):
     buttonCaptureClick()
-root.bind("<Control-Shift-KeyPress-S>", call_back)
+
+root.bind("<Control-Button-1>", call_back)
 
 
 def Catch_chipboard():
-
-    file_path = './somefile.png'
+    file_path = './image/somefile.png'
     image = Itt.get_file_content(file_path)
     if Itt.Transform_GT(Itt.High_precision, image):
         var.set('识别完成，结果已复制到粘贴板')
@@ -294,10 +322,6 @@ def callback3(event=None):
     Edit1.event_generate('<<Paste>>')
     Edit2.event_generate('<<Paste>>')
 
-def callback4(event=None):
-    global root
-    Edit1.event_generate('<<Paste>>')
-    Edit2.event_generate('<<Paste>>')
 
 '''创建一个弹出菜单'''
 menu = tk.Menu(root,
@@ -314,13 +338,43 @@ def popup(event):
 Edit1.bind("<Button-3>", popup)                 # 绑定鼠标右键,执行popup函数
 Edit2.bind("<Button-3>", popup)                 # 绑定鼠标右键,执行popup函数
 
-
-#--------------右键弹窗End--------------------------
-
-
 def popup(event):
     menu.post(event.x_root, event.y_root)   # post在指定的位置显示弹出菜单
 
+#--------------右键弹窗End--------------------------
+
+application_path = "./image/"
+iconFile = "icon.ico"
+
+iconObj = None
+
+class Hauptfenster:
+
+    # Define a function for quit the window
+    def quit_window():
+        print("quit!")
+        root.destroy()
+
+    # Define a function to show the window again
+    def show_window():
+        print("show window!")
+        iconObj.destroy(exit = 0)
+        #root.update()  # *********需要update一下
+
+    # Hide the window and show on the system taskbar
+    @staticmethod
+    def hide_window():
+        root.withdraw()
+        global iconObj
+        if not iconObj: iconObj = SysTrayIcon(icon= application_path+iconFile,hover_text="图文精灵 v2.0",
+                    menu_options=
+                    (('打开主界面', None, Hauptfenster.show_window), 
+                    ('识别图像', None, (('截图', None, lambda:buttonCaptureClick()),('打开图像', None, lambda:Ocrtranslated())))),
+                    on_quit = Hauptfenster.quit_window,   #退出调用
+                    tk_window = root, #Tk窗口
+                    )
+        iconObj.activation() 
+        
 #Frame1
 B.pack(side=TOP,anchor=W,fill=X,expand=N)
 G.pack(side=TOP,anchor=W,fill=X,expand=N)
@@ -342,6 +396,14 @@ fm1.pack(side=LEFT, fill=BOTH, expand=YES)
 fm2.pack(side=LEFT, fill=BOTH, expand=YES)
 fm3.forget()
 
+root.protocol('WM_DELETE_WINDOW', message_askyesno) 
+#root.protocol('WM_DELETE_WINDOW',Hauptfenster.hide_window)
+
+root.bind("<Unmap>", lambda event: Hauptfenster.hide_window() if (root.state() == 'iconic') else False) #窗口最小化判断，可以说是调用最重要的一步
+
 # 将小部件放置到主窗口中
 root.mainloop() 
  
+if __name__ == '__main__':
+    root.mainloop() 
+    

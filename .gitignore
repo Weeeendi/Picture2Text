@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
-# test module ¸öÈËÏ°¹ß£¬²âÊÔÄ¿Â¼È¥µô
+# test module ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ß£ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Â¼È¥ï¿½ï¿½
 /test/
 
 # Distribution / packaging
@@ -118,3 +118,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre
+pypiwin32-223-py3-none-any.whl
