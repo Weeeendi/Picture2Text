@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-from multiprocessing.shared_memory import ShareableList
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
+from turtle import color
 
-from PIL import Image, ImageGrab
+from PIL import ImageGrab
 from time import sleep
 from minIcon import SysTrayIcon
 
@@ -27,17 +27,9 @@ Shareble = 1
 default_lang = 'en'
 current_lang = default_lang
 
-root = tk.Tk()                     # 创建窗口对象的背景色
-root.title('图像转文字 v2.0')
-root.geometry('500x300+100+100')
 
-
-fm1 = ttk.Frame(root)
-fm2 = ttk.Frame(root)
-fm3 = ttk.Frame(root)
-
-
-def message_askyesno():
+def message_askyesno(root):
+    '''
     # Gets the requested values of the height and width.
     windowWidth = root.winfo_reqwidth()
     windowHeight = root.winfo_reqheight()
@@ -45,13 +37,12 @@ def message_askyesno():
     # Gets both half the screen width/height and window width/height
     positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
     positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
+    '''
     root.withdraw()  # ****实现主窗口隐藏
     root.update()  # *********需要update一下
-
-    if(tk.messagebox.askyesno("提示","要执行此操作？")):
-        root.destroy()
-    else:
-        root.deiconify()
+    
+    return (tk.messagebox.askyesno("提示","要执行此操作？"))
+   
 
 
 def clearEdit(Editx):
@@ -60,112 +51,32 @@ def clearEdit(Editx):
 
 
 #图片识别的结果显示在Edit1
-def OcrDisplayCallback():
+def OcrDisplayCallback(Edit1,Edit2):
     clearEdit(Edit1)
     clearEdit(Edit2)
     Edit1.insert(INSERT,pyperclip.paste())
 
 
-def TransCallback():
+def TransCallback(Edit1,Edit2,fm):
     clearEdit(Edit2)
     var = TextT.TextTranslate(current_lang,Edit1.get('1.0',END))
     Edit2.insert(INSERT,var)
-    fm3.pack(side=LEFT, fill=BOTH, expand=YES)
-
-var= tk.StringVar()
-
-starkabe = tk.PhotoImage(file = "./image/background.png")
-  
-B = ttk.Button(fm1, text="打开图像",command = lambda:Ocrtranslated(),width=5)
-G = ttk.Button(fm1, text="屏幕截图",command=lambda:buttonCaptureClick(),width=5)
-D = ttk.Button(fm1,text = "显示结果",command = lambda:OcrDisplayCallback(),width=5)
-
-#具体用法
-
-Notice = ttk.Label(fm1,anchor='center',image=starkabe,textvariable=var, wraplength = 130,foreground='grey', font=('Microsoft Yahei', 10),compound="top")
-var.set('请打开图片或截图')
-
-#窗口大小不可变化
-#root.resizable(True, False)  
-
-#在图形界面上设定输入框控件entry并放置控件
-#Edit1 = tk.Text(fm1, show='*', font=('Courier New', 12))   # 显示成密文形式
-#Edit2 = tk.Text(fm3, show=None, font=('Courier New', 12))  # 显示成明文形式
-OcrRes = ttk.Label(fm2, text='识别结果', font=('Microsoft Yahei', 10), width=10)
-Edit1 = tk.Text(fm2,width=10, height=5,padx=1,pady=1, undo = True,font=("Microsoft Yahei",10))
-
-TransButton = ttk.Button(fm2,text = "翻译 >",command = lambda:TransCallback(),width=10)
-TransRes = ttk.Label(fm3, text='翻译结果', font=('Microsoft Yahei', 10), width=10)
-Edit2 = tk.Text(fm3,width=10, height=5,padx=1,pady=1, undo = True,font=("Microsoft Yahei",10))
-
+    fm.pack(side=LEFT, fill=BOTH, expand=YES)
+ 
 #语言菜单
 languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "spa",
               "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs","法语":"fra"}
 
-v = tk.Variable()
-v.set('英语')
 '''
 OPTIONS = []
 for k,v in languages.items():
     OPTIONS.append(k)
 '''
-
-def setlang(event): 
-    global current_lang  
-    print(v.get())
-    current_lang = languages.get(v.get())  
-
-
-TransChoose = ttk.OptionMenu(fm2, v , '',
-                            "英语", 
-                            "简中", 
-                            "日语",
-                            "西班牙语",
-                            "韩语", 
-                            "繁中",
-                            "意大利语", 
-                            "捷克语",
-                            "法语"
-                            ,command=setlang)
-
-
-#撤销、重做
-def back():
-    try:
-        Edit1.edit_undo()
-        Edit2.edit_undo()
-    except Exception as e:
-        traceback.print_exc()
-    
-
-def callback():
-    try:
-        Edit1.edit_redo()
-        Edit2.edit_redo()
-    except Exception as e:
-        traceback.print_exc()
-
-
 def showAbout():
     tkinter.messagebox.showinfo(title='Topic', message= About,)
 
-
-
-#菜单栏
-menubar = tk.Menu(root)
-root.config(menu=menubar)
-
-#添加菜单选项
-menu1 = tk.Menu(menubar,borderwidth = 3,tearoff=False)
-menubar.add_cascade(label="历史记录", menu=menu1)
-
-menubar.add_command(label="关于",command = showAbout)
-menubar.add_command(label="撤销↶",command = back)
-menubar.add_command(label="重做↷",command = callback)
-
-
 class MyCapture:
-    def __init__(self, png):
+    def __init__(self, png, root):
         #变量X和Y用来记录鼠标左键按下的位置
         self.X = tkinter.IntVar(value=0)
         self.Y = tkinter.IntVar(value=0)
@@ -250,160 +161,270 @@ class MyCapture:
 
  #开始截图
 
+application_path = "./image/"
+iconFile = "icon.ico"
+        
+class _Main:  #调用SysTrayIcon的Demo窗口
+    def __init__(s):
+        s.SysTrayIcon  = None  # 判断是否打开系统托盘图标
 
+    def popup(s,event):
+        s.menu.post(event.x_root, event.y_root)   # post在指定的位置显示弹出菜单
 
-#用来显示全屏幕截图并响应二次截图的窗口类
-def buttonCaptureClick():
+    def setlang(s,event): 
+        global current_lang  
+        print(s.v.get())
+        current_lang = languages.get(s.v.get())  
+
+    def Edit_about(s,action):
+        '''option obtain "back","callback","clear","copy"."cut","paste",'''
+        #撤销、重做
+        
+        if(action == "back"):
+            try:
+                s.Edit1.edit_undo()
+                s.Edit2.edit_undo()
+            except Exception as e:
+                traceback.print_exc()
     
-    #当前在截图不支持,最小化判断
-    global Shareble
-    Shareble = 0
-    #最小化主窗口
-    root.state('icon')
-    sleep(0.2)
-    global filename
-    filename = 'temp.png'
+        if(action == "callback"):
+            try:
+                s.Edit1.edit_redo()
+                s.Edit2.edit_redo()
+            except Exception as e:
+                traceback.print_exc()
 
-    #grab()方法默认对全屏幕进行截图
+        if(action == "clear"):
+            try:
+                s.Edit1.delete('1.0',END)
+                s.Edit2.delete('1.0',END)
+            except Exception as e:
+                traceback.print_exc()
 
-    im = ImageGrab.grab()
-    im.save(filename)
-    im.close()
-    #显示全屏幕截图
-    w = MyCapture(filename)
-    G.wait_window(w.top)
-    #截图结束，恢复主窗口，并删除临时的全屏幕截图文件
-    root.state('normal')
-    os.remove(filename)
-    Catch_chipboard()
-    Shareble = 1
-
-
-
-
-"""Keyboard overwatch"""
-def call_back(event):
-    buttonCaptureClick()
-
-root.bind("<Control-Button-1>", call_back)
+        if(action == "cut"):
+            s.Edit2.event_generate('<<Cut>>')
+            s.Edit1.event_generate('<<Cut>>')
+            
+        if(action == "copy"):
+            s.Edit1.event_generate('<<copy>>')
+            s.Edit2.event_generate('<<copy>>')
+            
+        if(action == "Paste"):
+            s.Edit2.event_generate('<<Paste>>')
+            s.Edit1.event_generate('<<Paste>>')
+    #用来显示全屏幕截图并响应二次截图的窗口类
 
 
-def Catch_chipboard():
-    file_path = './image/somefile.png'
-    image = Itt.get_file_content(file_path)
-    if Itt.Transform_GT(Itt.High_precision, image):
-        var.set('识别完成，结果已复制到粘贴板')
-    else:        
-        var.set('')    
+    def buttonCaptureClick(s):
+        #当前在截图.不支持最小化判断
+        global Shareble
+        Shareble = 0
+        isNormal = 0
+        #最小化主窗口
+        if(s.root.state() == "normal"):
+            s.root.withdraw() #隐藏tk窗口
+            isNormal = 1
+        #s.root.state('icon')
+        sleep(0.2)
+        global filename
+        filename = 'temp.png'
 
+        #grab()方法默认对全屏幕进行截图
 
-def Ocrtranslated():
-    if Itt.Transform_GT(Itt.High_precision):
-        var.set('识别完成，结果已复制到粘贴板')
-    else:
-        var.set('')
+        im = ImageGrab.grab()
+        im.save(filename)
+        im.close()
+        #显示全屏幕截图
+        w = MyCapture(filename,s.root)
+        s.G.wait_window(w.top)
+        #截图结束，恢复主窗口，并删除临时的全屏幕截图文件
+        os.remove(filename)
+        s.Catch_chipboard()
+        if(isNormal):
+            s.root.deiconify()
+        else:
+            s.resume()
+        Shareble = 1
 
+    def display(s):
+        #Frame1
+        s.B.pack(side=TOP,anchor=W,fill=X,expand=N)
+        s.G.pack(side=TOP,anchor=W,fill=X,expand=N)
+        s.D.pack(side=TOP,anchor=W,fill=X,expand=N)
+        s.Notice.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
 
+        #Frame2
+        s.OcrRes.pack(side=TOP,anchor=W,fill=X,expand=N) 
+        s.Edit1.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
+        
+        s.TransButton.pack(side=LEFT,anchor=CENTER,fill=X,expand=Y)
+        s.TransChoose.pack(side=RIGHT,anchor=W,fill=BOTH,expand=Y)
 
+        #Frame3
+        s.TransRes.pack(side=TOP,anchor=W,fill=X,expand=N) 
+        s.Edit2.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
 
-#右键 剪切复制黏贴
-def callback1(event=None):
-    global root
-    Edit1.event_generate('<<Cut>>')
-    Edit2.event_generate('<<Cut>>')
+        s.fm1.pack(side=LEFT, fill=BOTH, expand=YES)
+        s.fm2.pack(side=LEFT, fill=BOTH, expand=YES)
+        s.fm3.forget()
+
+    def switch_icon(s, _sysTrayIcon, icon = 'D:\\2.ico'):
+        #点击右键菜单项目会传递SysTrayIcon自身给引用的函数，所以这里的_sysTrayIcon = s.sysTrayIcon
+        #只是一个改图标的例子，不需要的可以删除此函数
+        _sysTrayIcon.icon = icon
+        _sysTrayIcon.refresh()
+        
+        #气泡提示的例子
+        s.show_msg(title = '图标更换', msg = '图标更换成功！', time = 500)
     
-def callback2(event=None):
-    global root
-    Edit1.event_generate('<<copy>>')
-    Edit2.event_generate('<<copy>>')
-    
-def callback3(event=None):
-    global root
-    Edit1.event_generate('<<Paste>>')
-    Edit2.event_generate('<<Paste>>')
+    def show_msg(s, title = '标题', msg = '内容', time = 500):
+        s.SysTrayIcon.refresh(title = title, msg = msg, time = time)
+
+    def Hidden_window(s, icon = './image./icon.ico', hover_text = "图文精灵"):
+        '''隐藏窗口至托盘区，调用SysTrayIcon的重要函数'''
+
+        #托盘图标右键菜单, 格式: ('name', None, callback),下面也是二级菜单的例子
+        #24行有自动添加‘退出’，不需要的可删除
+        
+        menu_options=(('打开主界面', None,s.resume), 
+                      ('识别图像', None, (('截图', None,s.buttonCaptureClick),('打开图像', None,s.Ocrtranslated))),
+                      ('退出', None,s.beforeExit)
+                      )       
+
+        s.root.withdraw()   #隐藏tk窗口
+        if not s.SysTrayIcon: s.SysTrayIcon = SysTrayIcon(
+                                        icon,               #图标
+                                        hover_text,         #光标停留显示文字
+                                        menu_options,       #右键菜单
+                                        on_quit = s.beforeExit,   #退出调用
+                                        tk_window = s.root, #Tk窗口
+                                        )
+        s.SysTrayIcon.activation()
+
+    def resume(s):
+        s.SysTrayIcon.destroy(exit = 0)
 
 
-'''创建一个弹出菜单'''
-menu = tk.Menu(root,
+    def exit(s, _sysTrayIcon=None):
+        s.root.destroy()
+        print ('exit...')
+
+    def beforeExit(s):
+        s.SysTrayIcon.destroy(exit=0)
+        sleep(1.0)
+        s.root.update()
+        s.exit()
+
+    def Catch_chipboard(s):
+        file_path = './image/somefile.png'
+        image = Itt.get_file_content(file_path)
+        if Itt.Transform_GT(Itt.High_precision, image):
+            s.varInFm1.set('识别完成，结果已复制到粘贴板')
+        else:        
+            s.varInFm1.set('未识别到文字信息')
+        
+    def Ocrtranslated(s):
+        if Itt.Transform_GT(Itt.High_precision):
+            s.varInFm1.set('识别完成，结果已复制到粘贴板')
+        else:
+            s.varInFm1.set('未识别到文字信息')
+
+        print(s.root.state())
+        if(s.root.state() == "withdrawn"):
+            s.resume()
+
+        
+
+    def main(s):
+        #tk窗口
+        s.root = tk.Tk()
+        s.root.title('图像转文字 v2.0')
+        s.root.geometry('500x300+100+100')
+        s.fm1 = ttk.Frame(s.root,takefocus= "blue")
+        s.fm2 = ttk.Frame(s.root)
+        s.fm3 = ttk.Frame(s.root)
+     
+        s.varInFm1= StringVar()
+        starkabe = tk.PhotoImage(file = "./image/background.png")
+        s.Notice = ttk.Label(s.fm1,anchor='center',image=starkabe,textvariable=s.varInFm1, wraplength = 130,foreground='grey', font=('Microsoft Yahei', 12),compound="top")
+        s.varInFm1.set('请打开图片或截图')
+
+        #窗口大小不可变化
+        #root.resizable(True, False)  
+
+        #在图形界面上设定输入框控件entry并放置控件
+        #Edit1 = tk.Text(fm1, show='*', font=('Courier New', 12))   # 显示成密文形式
+        #Edit2 = tk.Text(fm3, show=None, font=('Courier New', 12))  # 显示成明文形式
+
+        '''Farme1 function area'''
+
+        s.B = ttk.Button(s.fm1, text="打开图像",command =s.Ocrtranslated,width=5)
+        s.G = ttk.Button(s.fm1, text="屏幕截图",command=s.buttonCaptureClick,width=5)
+        s.D = ttk.Button(s.fm1,text = "显示结果",command = lambda:OcrDisplayCallback(s.Edit1,s.Edit2),width=5)
+
+        s.OcrRes = ttk.Label(s.fm2, text='识别结果', font=('Microsoft Yahei', 10), width=10)
+        s.Edit1 = tk.Text(s.fm2,width=10, height=5,padx=10,pady=1, undo = True,font=("Microsoft Yahei",9))
+        s.TableStr = ttk.Label(s.fm2, anchor='e',text='To:', font=('Microsoft Yahei', 10))
+
+        s.TransButton = ttk.Button(s.fm2,text = "翻译成 >",command = lambda:TransCallback(s.Edit1,s.Edit2,s.fm3),width=10)
+        s.TransRes = ttk.Label(s.fm3, text='翻译结果', font=('Microsoft Yahei', 10), width=10)
+        s.Edit2 = tk.Text(s.fm3,width=10, height=5,padx=10,pady=1, undo = True,font=("Microsoft Yahei",9))
+
+        '''创建一个弹出菜单'''
+        
+        s.menu = tk.Menu(s.root,
             tearoff=False,
             #bg="grey",
             )
-menu.add_command(label="剪切", command=callback1)
-menu.add_command(label="复制", command=callback2)
-menu.add_command(label="黏贴", command=callback3)
+        s.menu.add_command(label="剪切", command=s.Edit_about("cut"))
+        s.menu.add_command(label="复制", command=s.Edit_about("copy"))
+        s.menu.add_command(label="黏贴", command=s.Edit_about("paste"))
 
-def popup(event):
-    menu.post(event.x_root, event.y_root)   # post在指定的位置显示弹出菜单
+        s.Edit1.bind("<Button-3>", s.popup)                 # 绑定鼠标右键,执行popup函数
+        s.Edit2.bind("<Button-3>", s.popup)               # 绑定鼠标右键,执行popup函数
 
-Edit1.bind("<Button-3>", popup)                 # 绑定鼠标右键,执行popup函数
-Edit2.bind("<Button-3>", popup)                 # 绑定鼠标右键,执行popup函数
+        s.v = Variable()
+        s.v.set('英语')
+        '''Farme2 function area'''
+        s.TransChoose = ttk.OptionMenu(s.fm2, s.v , '',
+                            "英语", 
+                            "简中", 
+                            "日语",
+                            "西班牙语",
+                            "韩语", 
+                            "繁中",
+                            "意大利语", 
+                            "捷克语",
+                            "法语"
+                            ,command=s.setlang)
 
-def popup(event):
-    menu.post(event.x_root, event.y_root)   # post在指定的位置显示弹出菜单
+        #菜单栏
+        s.menubar = tk.Menu(s.root)
+        s.root.config(menu=s.menubar)
 
-#--------------右键弹窗End--------------------------
+        #添加菜单选项
+        s.menu1 = tk.Menu(s.menubar,borderwidth = 3,tearoff=False)
+        s.menubar.add_cascade(label="选项", menu = s.menu1)
 
-application_path = "./image/"
-iconFile = "icon.ico"
-
-iconObj = None
-
-class Hauptfenster:
-
-    # Define a function for quit the window
-    def quit_window():
-        print("quit!")
-        root.destroy()
-
-    # Define a function to show the window again
-    def show_window():
-        print("show window!")
-        iconObj.destroy(exit = 0)
-        #root.update()  # *********需要update一下
-
-    # Hide the window and show on the system taskbar
-    @staticmethod
-    def hide_window():
-        root.withdraw()
-        global iconObj
-        if not iconObj: iconObj = SysTrayIcon(icon= application_path+iconFile,hover_text="图文精灵 v2.0",
-                    menu_options=
-                    (('打开主界面', None, Hauptfenster.show_window), 
-                    ('识别图像', None, (('截图', None, lambda:buttonCaptureClick()),('打开图像', None, lambda:Ocrtranslated())))),
-                    on_quit = Hauptfenster.quit_window,   #退出调用
-                    tk_window = root, #Tk窗口
-                    )
-        iconObj.activation() 
+        s.menu1.add_command(label="撤销↶",command = lambda: s.Edit_about("back"))
+        s.menu1.add_command(label="重做↷",command = lambda: s.Edit_about("callback"))
+        s.menu1.add_command(label="清空",command = lambda: s.Edit_about("clear"))
+        s.menu1.add_separator()
+        s.menu1.add_command(label="历史",command = lambda: showHistroy)
+        s.menu1.add_command(label="清空历史",command = lambda: clearHistory)
+        s.menu1.add_separator()
+        s.menu1.add_command(label="关于",command = showAbout)
+        '''快捷键'''
+        s.display()                    
+        s.root.bind("<Control-Button-1>",lambda:s.buttonCaptureClick())
+        s.root.bind("<Unmap>", lambda event: s.Hidden_window() if ((s.root.state() == 'iconic') and Shareble) else False) #窗口最小化判断，可以说是调用最重要的一步
+        s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
         
-#Frame1
-B.pack(side=TOP,anchor=W,fill=X,expand=N)
-G.pack(side=TOP,anchor=W,fill=X,expand=N)
-D.pack(side=TOP,anchor=W,fill=X,expand=N)
-Notice.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
-
-#Frame2
-OcrRes.pack(side=TOP,anchor=W,fill=X,expand=N) 
-Edit1.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
-TransChoose.pack(side=LEFT,anchor=W,fill=BOTH,expand=Y)
-TransButton.pack(side=LEFT,anchor=W,fill=BOTH,expand=Y)
+        s.root.mainloop()
 
 
-#Frame3
-TransRes.pack(side=TOP,anchor=W,fill=X,expand=N) 
-Edit2.pack(side=TOP,anchor=W,fill=BOTH,expand=Y)
-
-fm1.pack(side=LEFT, fill=BOTH, expand=YES)
-fm2.pack(side=LEFT, fill=BOTH, expand=YES)
-fm3.forget()
-
-root.protocol('WM_DELETE_WINDOW', message_askyesno) 
-#root.protocol('WM_DELETE_WINDOW',Hauptfenster.hide_window)
-
-root.bind("<Unmap>", lambda event: Hauptfenster.hide_window() if (root.state() == 'iconic') else False) #窗口最小化判断，可以说是调用最重要的一步
-
-# 将小部件放置到主窗口中
-root.mainloop() 
- 
 if __name__ == '__main__':
-    root.mainloop() 
+    Main = _Main()
+    Main.main()
+
     
