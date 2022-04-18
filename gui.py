@@ -21,12 +21,12 @@ import Text_transAPI as TextT
 
 About = "版本号信息 v1.2 \n\n 一款小而美的Ocr软件\n该软件仅用于交流学习应用，禁止任何形式的商用行为" 
 Shareble = 1
-
+NeedExit = 0
 
 #默认配置项
+default_srclang = 'auto'
 default_lang = 'en'
 current_lang = default_lang
-
 
 def message_askyesno(root):
     '''
@@ -64,14 +64,12 @@ def TransCallback(Edit1,Edit2,fm):
     fm.pack(side=LEFT, fill=BOTH, expand=YES)
  
 #语言菜单
-languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "spa",
+src_languages = {"自动":"auto","英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "spa",
               "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs","法语":"fra"}
 
-'''
-OPTIONS = []
-for k,v in languages.items():
-    OPTIONS.append(k)
-'''
+dec_languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "spa",
+              "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs","法语":"fra"}
+
 def showAbout():
     tkinter.messagebox.showinfo(title='Topic', message= About,)
 
@@ -141,7 +139,7 @@ class MyCapture:
             top, bottom = sorted([self.Y.get(), event.y])
             pic = ImageGrab.grab((left+1, top+1, right, bottom))
             #弹出保存截图对话框
-            file_path = './image/somefile.png'
+            file_path = './somefile.png'
             pic.save(file_path, 'PNG')
             sleep(1)
 
@@ -174,7 +172,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
     def setlang(s,event): 
         global current_lang  
         print(s.v.get())
-        current_lang = languages.get(s.v.get())  
+        current_lang = dec_languages.get(s.v.get())  
 
     def Edit_about(s,action):
         '''option obtain "back","callback","clear","copy"."cut","paste",'''
@@ -308,15 +306,17 @@ class _Main:  #调用SysTrayIcon的Demo窗口
     def exit(s, _sysTrayIcon=None):
         s.root.destroy()
         print ('exit...')
+        os._exit(0) 
 
     def beforeExit(s):
-        s.SysTrayIcon.destroy(exit=0)
-        sleep(1.0)
-        s.root.update()
-        s.exit()
+        global NeedExit
+        NeedExit = 1
+        #sleep(1.0)
+        s.resume()
+        #s.exit()
 
     def Catch_chipboard(s):
-        file_path = './image/somefile.png'
+        file_path = './somefile.png'
         image = Itt.get_file_content(file_path)
         if Itt.Transform_GT(Itt.High_precision, image):
             s.varInFm1.set('识别完成，结果已复制到粘贴板')
@@ -345,7 +345,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.fm3 = ttk.Frame(s.root)
      
         s.varInFm1= StringVar()
-        starkabe = tk.PhotoImage(file = "./image/background.png")
+        try:
+            starkabe = tk.PhotoImage(file = "./image/background.png")
+        except Exception as e:
+            print(e)
+            starkabe =None
         s.Notice = ttk.Label(s.fm1,anchor='center',image=starkabe,textvariable=s.varInFm1, wraplength = 130,foreground='grey', font=('Microsoft Yahei', 12),compound="top")
         s.varInFm1.set('请打开图片或截图')
 
@@ -385,17 +389,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
 
         s.v = Variable()
         s.v.set('英语')
+        list_zh = list(dec_languages.keys())
+        
         '''Farme2 function area'''
         s.TransChoose = ttk.OptionMenu(s.fm2, s.v , '',
-                            "英语", 
-                            "简中", 
-                            "日语",
-                            "西班牙语",
-                            "韩语", 
-                            "繁中",
-                            "意大利语", 
-                            "捷克语",
-                            "法语"
+                            *list_zh
                             ,command=s.setlang)
 
         #菜单栏
@@ -404,6 +402,8 @@ class _Main:  #调用SysTrayIcon的Demo窗口
 
         #添加菜单选项
         s.menu1 = tk.Menu(s.menubar,borderwidth = 3,tearoff=False)
+        s.menu2 = tk.Menu(s.menubar,borderwidth = 3,tearoff=False)
+       
         s.menubar.add_cascade(label="选项", menu = s.menu1)
 
         s.menu1.add_command(label="撤销↶",command = lambda: s.Edit_about("back"))
@@ -414,10 +414,18 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.menu1.add_command(label="清空历史",command = lambda: clearHistory)
         s.menu1.add_separator()
         s.menu1.add_command(label="关于",command = showAbout)
-        '''快捷键'''
-        s.display()                    
-        s.root.bind("<Control-Button-1>",lambda:s.buttonCaptureClick())
+
+        s.menubar.add_cascade(label="主题", menu = s.menu2)
+        s.menu2.add_cascade(label = "浅色",command=lambda:set_theme(light))
+        s.menu2.add_cascade(label = "深色",command=lambda:set_theme(dark))
+
+        #显示所有布局
+        s.display()  
+        '''快捷键'''                  
+        #s.root.bind("<Control-Button-1>",lambda:s.buttonCaptureClick())
+
         s.root.bind("<Unmap>", lambda event: s.Hidden_window() if ((s.root.state() == 'iconic') and Shareble) else False) #窗口最小化判断，可以说是调用最重要的一步
+        s.root.bind("<Map>",lambda event: s.exit() if(NeedExit) else False)
         s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
         
         s.root.mainloop()
