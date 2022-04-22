@@ -1,13 +1,15 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
+from fileinput import close
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
+from tkinter.filedialog import Open
 from turtle import color
 
 from PIL import ImageGrab
 from time import sleep
 from minIcon import SysTrayIcon
-
+from History  import *
 import pyperclip
 import os
 import tkinter as tk          # 导入 Tkinter 库
@@ -17,7 +19,7 @@ import tkinter.messagebox
 import traceback
 import IMG_Tran_TEXT as Itt
 import Text_transAPI as TextT
-
+import json
 
 About = "版本号信息 v1.2 \n\n 一款小而美的Ocr软件\n该软件仅用于交流学习应用，禁止任何形式的商用行为" 
 Shareble = 1
@@ -72,6 +74,24 @@ dec_languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "
 
 def showAbout():
     tkinter.messagebox.showinfo(title='Topic', message= About,)
+
+
+class HistotyFile:
+    """存储历史文件"""
+    def __init__(self,filePath,file):
+        self.filename = os.path.join(os.sep,*PATH,file)
+        self.loadRecord()
+    
+    def SaveRecord(self,time,text):
+        self.dict[time] = text
+        self.records = open(self.filename)
+        json.dump(self.dict,self.records)
+        self.records.close()
+    
+    def loadRecord(self):
+        records = open(self.filename)
+        self.dict = json.load(records)
+        records.close()
 
 class MyCapture:
     def __init__(self, png, root):
@@ -410,9 +430,13 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.menu1.add_command(label="重做↷",command = lambda: s.Edit_about("callback"))
         s.menu1.add_command(label="清空",command = lambda: s.Edit_about("clear"))
         s.menu1.add_separator()
-        s.menu1.add_command(label="历史",command = lambda: showHistroy)
-        s.menu1.add_command(label="清空历史",command = lambda: clearHistory)
-        s.menu1.add_separator()
+
+
+        s.histroy = history("./image","history.txt",s.root)
+        s.menu1.add_command(label="历史",command =  lambda:s.histroy.CreatHistory())
+        s.menu1.add_command(label="清空历史",command = lambda: s.histroy.btnClear())
+
+        s.menu1.add_separator()    
         s.menu1.add_command(label="关于",command = showAbout)
 
         s.menubar.add_cascade(label="主题", menu = s.menu2)
@@ -423,7 +447,8 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.display()  
         '''快捷键'''                  
         #s.root.bind("<Control-Button-1>",lambda:s.buttonCaptureClick())
-
+      
+        
         s.root.bind("<Unmap>", lambda event: s.Hidden_window() if ((s.root.state() == 'iconic') and Shareble) else False) #窗口最小化判断，可以说是调用最重要的一步
         s.root.bind("<Map>",lambda event: s.exit() if(NeedExit) else False)
         s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
