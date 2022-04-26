@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from fileinput import close
+from pkgutil import get_data
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
 from tkinter.filedialog import Open
 from turtle import color
@@ -19,7 +20,7 @@ import tkinter.messagebox
 import traceback
 import IMG_Tran_TEXT as Itt
 import Text_transAPI as TextT
-import json
+
 
 About = "版本号信息 v1.2 \n\n 一款小而美的Ocr软件\n该软件仅用于交流学习应用，禁止任何形式的商用行为" 
 Shareble = 1
@@ -29,6 +30,11 @@ NeedExit = 0
 default_srclang = 'auto'
 default_lang = 'en'
 current_lang = default_lang
+
+default_theme = "light"
+current_theme = default_theme
+
+
 
 def message_askyesno(root):
     '''
@@ -46,17 +52,23 @@ def message_askyesno(root):
     return (tk.messagebox.askyesno("提示","要执行此操作？"))
    
 
-
 def clearEdit(Editx):
-        Editx.delete('1.0',END)
-       # Editx.configure(fg='black')  # 修改字体颜色，修改其它参数只需要传入对应的参数即可
+    Editx.delete('1.0',END)
+    # Editx.configure(fg='black')  # 修改字体颜色，修改其它参数只需要传入对应的参数即可
 
 
 #图片识别的结果显示在Edit1
-def OcrDisplayCallback(Edit1,Edit2):
+def OcrDisplayCallback(root,Edit1,Edit2):
     clearEdit(Edit1)
     clearEdit(Edit2)
-    Edit1.insert(INSERT,pyperclip.paste())
+    Temptext = pyperclip.paste()
+    Edit1.insert(INSERT,Temptext)
+    root.varInFm1.set('请打开图片或截图')
+    #保存到历史记录
+    time = datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')
+    root.histroyF.dict[time] = Temptext
+    root.histroyF.SaveRec()
+    logging.debug("已保存历史记录\n"+Temptext)
 
 
 def TransCallback(Edit1,Edit2,fm):
@@ -76,22 +88,7 @@ def showAbout():
     tkinter.messagebox.showinfo(title='Topic', message= About,)
 
 
-class HistotyFile:
-    """存储历史文件"""
-    def __init__(self,filePath,file):
-        self.filename = os.path.join(os.sep,*PATH,file)
-        self.loadRecord()
-    
-    def SaveRecord(self,time,text):
-        self.dict[time] = text
-        self.records = open(self.filename)
-        json.dump(self.dict,self.records)
-        self.records.close()
-    
-    def loadRecord(self):
-        records = open(self.filename)
-        self.dict = json.load(records)
-        records.close()
+
 
 class MyCapture:
     def __init__(self, png, root):
@@ -159,7 +156,7 @@ class MyCapture:
             top, bottom = sorted([self.Y.get(), event.y])
             pic = ImageGrab.grab((left+1, top+1, right, bottom))
             #弹出保存截图对话框
-            file_path = './somefile.png'
+            file_path = './res/image/somefile.png'
             pic.save(file_path, 'PNG')
             sleep(1)
 
@@ -179,12 +176,15 @@ class MyCapture:
 
  #开始截图
 
-application_path = "./image/"
+application_path = "./res/image/"
 iconFile = "icon.ico"
         
 class _Main:  #调用SysTrayIcon的Demo窗口
     def __init__(s):
         s.SysTrayIcon  = None  # 判断是否打开系统托盘图标
+        #初始化历史记录
+        Recordfile = os.path.join(os.extsep,*PATH)
+        s.histroyF = RecordHty(file= Recordfile+File)
 
     def popup(s,event):
         s.menu.post(event.x_root, event.y_root)   # post在指定的位置显示弹出菜单
@@ -298,7 +298,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
     def show_msg(s, title = '标题', msg = '内容', time = 500):
         s.SysTrayIcon.refresh(title = title, msg = msg, time = time)
 
-    def Hidden_window(s, icon = './image./icon.ico', hover_text = "图文精灵"):
+    def Hidden_window(s, icon = './res/image/icon.ico', hover_text = "图文精灵"):
         '''隐藏窗口至托盘区，调用SysTrayIcon的重要函数'''
 
         #托盘图标右键菜单, 格式: ('name', None, callback),下面也是二级菜单的例子
@@ -336,7 +336,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         #s.exit()
 
     def Catch_chipboard(s):
-        file_path = './somefile.png'
+        file_path = './res/image/somefile.png'
         image = Itt.get_file_content(file_path)
         if Itt.Transform_GT(Itt.High_precision, image):
             s.varInFm1.set('识别完成，结果已复制到粘贴板')
@@ -360,13 +360,16 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.root = tk.Tk()
         s.root.title('图像转文字 v2.0')
         s.root.geometry('500x300+100+100')
+
+        s.root.iconbitmap('./res/image/icon.ico') 
+
         s.fm1 = ttk.Frame(s.root,takefocus= "blue")
         s.fm2 = ttk.Frame(s.root)
         s.fm3 = ttk.Frame(s.root)
      
         s.varInFm1= StringVar()
         try:
-            starkabe = tk.PhotoImage(file = "./image/background.png")
+            starkabe = tk.PhotoImage(file = "./res/image/background.png")
         except Exception as e:
             print(e)
             starkabe =None
@@ -384,7 +387,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
 
         s.B = ttk.Button(s.fm1, text="打开图像",command =s.Ocrtranslated,width=5)
         s.G = ttk.Button(s.fm1, text="屏幕截图",command=s.buttonCaptureClick,width=5)
-        s.D = ttk.Button(s.fm1,text = "显示结果",command = lambda:OcrDisplayCallback(s.Edit1,s.Edit2),width=5)
+        s.D = ttk.Button(s.fm1,text = "显示结果",command = lambda:OcrDisplayCallback(s,s.Edit1,s.Edit2),width=5)
 
         s.OcrRes = ttk.Label(s.fm2, text='识别结果', font=('Microsoft Yahei', 10), width=10)
         s.Edit1 = tk.Text(s.fm2,width=10, height=5,padx=10,pady=1, undo = True,font=("Microsoft Yahei",9))
@@ -432,16 +435,16 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.menu1.add_separator()
 
 
-        s.histroy = history("./image","history.txt",s.root)
+        s.histroy = history(s.histroyF,s.root)
         s.menu1.add_command(label="历史",command =  lambda:s.histroy.CreatHistory())
-        s.menu1.add_command(label="清空历史",command = lambda: s.histroy.btnClear())
+        s.menu1.add_command(label="清空历史",command = lambda: s.histroy.DelAllData())
 
         s.menu1.add_separator()    
         s.menu1.add_command(label="关于",command = showAbout)
 
         s.menubar.add_cascade(label="主题", menu = s.menu2)
-        s.menu2.add_cascade(label = "浅色",command=lambda:set_theme(light))
-        s.menu2.add_cascade(label = "深色",command=lambda:set_theme(dark))
+        s.menu2.add_radiobutton(label = "浅色",command=lambda:set_theme(light))
+        s.menu2.add_radiobutton(label = "深色",command=lambda:set_theme(dark))
 
         #显示所有布局
         s.display()  
@@ -453,6 +456,8 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.root.bind("<Map>",lambda event: s.exit() if(NeedExit) else False)
         s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
         
+  
+
         s.root.mainloop()
 
 
