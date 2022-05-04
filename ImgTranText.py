@@ -1,3 +1,4 @@
+from cgi import print_form
 from aip import AipOcr
 
 import pyperclip
@@ -68,8 +69,9 @@ def Transform_GT(accuracy_option, image=0):
 
     """ Generasion object Calling """
     try:
-        client.basicGeneral(image)
-    except TypeError:
+        ret = client.basicGeneral(image)
+    except Exception as e:
+        print(e)
         return 0
     """ IF there are optional parameter  """
     options = {}

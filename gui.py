@@ -1,15 +1,11 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-from fileinput import close
-from pkgutil import get_data
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
-from tkinter.filedialog import Open
-from turtle import color
 
 from PIL import ImageGrab
 from time import sleep
-from minIcon import SysTrayIcon
+from MinIcon import SysTrayIcon
 from History  import *
 import pyperclip
 import os
@@ -18,11 +14,11 @@ from tkinter import Y,ttk
 from tkinter import * 
 import tkinter.messagebox
 import traceback
-import IMG_Tran_TEXT as Itt
-import Text_transAPI as TextT
+import ImgTranText as Itt
+import TextTransAPI as TextT
 
 
-About = "版本号信息 v1.2 \n\n 一款小而美的Ocr软件\n该软件仅用于交流学习应用，禁止任何形式的商用行为" 
+About = "图文精灵 \n版本号信息 v2.0 \n\n 一款小而美的Ocr软件\n该软件仅用于交流学习应用，禁止任何形式的商用行为" 
 Shareble = 1
 NeedExit = 0
 
@@ -34,7 +30,7 @@ current_lang = default_lang
 default_theme = "light"
 current_theme = default_theme
 
-
+disconnect = 0 
 
 def message_askyesno(root):
     '''
@@ -50,7 +46,6 @@ def message_askyesno(root):
     root.update()  # *********需要update一下
     
     return (tk.messagebox.askyesno("提示","要执行此操作？"))
-   
 
 def clearEdit(Editx):
     Editx.delete('1.0',END)
@@ -63,7 +58,7 @@ def OcrDisplayCallback(root,Edit1,Edit2):
     clearEdit(Edit2)
     Temptext = pyperclip.paste()
     Edit1.insert(INSERT,Temptext)
-    root.varInFm1.set('请打开图片或截图')
+    root.UpdateBg("请打开图片或截图","./res/image/background1.png")   
     #保存到历史记录
     time = datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')
     root.histroyF.dict[time] = Temptext
@@ -85,10 +80,7 @@ dec_languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "
               "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs","法语":"fra"}
 
 def showAbout():
-    tkinter.messagebox.showinfo(title='Topic', message= About,)
-
-
-
+    tkinter.messagebox.showinfo(title='Topic', message= About)
 
 class MyCapture:
     def __init__(self, png, root):
@@ -175,6 +167,15 @@ class MyCapture:
         self.canvas.pack(fill=tkinter.BOTH, expand=tkinter.YES)
 
  #开始截图
+
+#判断是否有网络连接
+def isConnected():
+    import requests
+    try:
+        html = requests.get("http://www.baidu.com",timeout=2)
+    except:
+        return False
+    return True
 
 application_path = "./res/image/"
 iconFile = "icon.ico"
@@ -339,37 +340,73 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         file_path = './res/image/somefile.png'
         image = Itt.get_file_content(file_path)
         if Itt.Transform_GT(Itt.High_precision, image):
+            s.UpdateBg('请打开图片或截图',"./res/image/background2.png")
             s.varInFm1.set('识别完成，结果已复制到粘贴板')
         else:        
             s.varInFm1.set('未识别到文字信息')
         
     def Ocrtranslated(s):
         if Itt.Transform_GT(Itt.High_precision):
+            s.UpdateBg('请打开图片或截图',"./res/image/background2.png")
             s.varInFm1.set('识别完成，结果已复制到粘贴板')
         else:
             s.varInFm1.set('未识别到文字信息')
-
         print(s.root.state())
         if(s.root.state() == "withdrawn"):
             s.resume()
+    
+    def UpdateBg(s,text,imgPath):
+        """变更Notice 图片文字
+        @text : 显示文字
+        @imgPath : 文件名带路径
+        """
+        s.varInFm1.set(text)
+        img = tk.PhotoImage(file = imgPath)
+        s.Notice.configure(image=img,textvariable=s.varInFm1,compound="top")
+        s.Notice.image = img
 
-        
+
+    def UpdateConnect(s):
+        global disconnect
+        if(isConnected() and disconnect):
+            disconnect = 0 
+            s.UpdateBg("请打开图片或截图","./res/image/background1.png")
+        elif isConnected() == 0:
+            disconnect = 1
+            s.UpdateBg("当前无网络连接，请检查后重试","./res/image/background.png") 
+        s.root.after(5000,s.UpdateConnect)       
+            
+    def center_window(s,width=300, height=200):
+        # get screen width and height
+        screen_width = s.root.winfo_screenwidth()
+        screen_height = s.root.winfo_screenheight()
+
+        # calculate position x and y coordinates
+        x = (screen_width/2) - (width/2)
+        y = (screen_height/2) - (height/2)
+        s.root.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
     def main(s):
         #tk窗口
         s.root = tk.Tk()
-        s.root.title('图像转文字 v2.0')
-        s.root.geometry('500x300+100+100')
+        s.root.title('图文精灵 v2.0')
 
-        s.root.iconbitmap('./res/image/icon.ico') 
+        winWidth = 500
+        winHeight = 300
+        #s.center_window(winWidth,winHeight)
+        
+        #t=ttk.Style()
+        #t.theme_use('classic')
+        s.Fmstyle = ttk.Style()
+        s.Fmstyle.configure('1.TFrame',background='DarkGray',foreground = "White")
 
-        s.fm1 = ttk.Frame(s.root,takefocus= "blue")
-        s.fm2 = ttk.Frame(s.root)
-        s.fm3 = ttk.Frame(s.root)
+        s.fm1 = ttk.Frame(s.root,style='1.TFrame')
+        s.fm2 = ttk.Frame(s.root,style='1.TFrame')
+        s.fm3 = ttk.Frame(s.root,style='1.TFrame')
      
         s.varInFm1= StringVar()
         try:
-            starkabe = tk.PhotoImage(file = "./res/image/background.png")
+            starkabe = tk.PhotoImage(file = "./res/image/background1.png")
         except Exception as e:
             print(e)
             starkabe =None
@@ -434,7 +471,6 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.menu1.add_command(label="清空",command = lambda: s.Edit_about("clear"))
         s.menu1.add_separator()
 
-
         s.histroy = history(s.histroyF,s.root)
         s.menu1.add_command(label="历史",command =  lambda:s.histroy.CreatHistory())
         s.menu1.add_command(label="清空历史",command = lambda: s.histroy.DelAllData())
@@ -442,22 +478,22 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.menu1.add_separator()    
         s.menu1.add_command(label="关于",command = showAbout)
 
-        s.menubar.add_cascade(label="主题", menu = s.menu2)
-        s.menu2.add_radiobutton(label = "浅色",command=lambda:set_theme(light))
-        s.menu2.add_radiobutton(label = "深色",command=lambda:set_theme(dark))
+       # s.menubar.add_cascade(label="主题", menu = s.menu2)
+       # s.menu2.add_radiobutton(label = "浅色",command=lambda:set_theme(light))
+       # s.menu2.add_radiobutton(label = "深色",command=lambda:set_theme(dark))
 
         #显示所有布局
         s.display()  
         '''快捷键'''                  
         #s.root.bind("<Control-Button-1>",lambda:s.buttonCaptureClick())
-      
         
         s.root.bind("<Unmap>", lambda event: s.Hidden_window() if ((s.root.state() == 'iconic') and Shareble) else False) #窗口最小化判断，可以说是调用最重要的一步
         s.root.bind("<Map>",lambda event: s.exit() if(NeedExit) else False)
         s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
-        
-  
-
+        #定时刷新网络状态        
+        s.UpdateConnect()
+        s.center_window(winWidth,winHeight)
+        s.root.iconbitmap('./res/image/icon.ico') 
         s.root.mainloop()
 
 

@@ -16,11 +16,10 @@ import pyautogui
 
 
 def Screenshot():
-    pyautogui.press('f1')
+    pyautogui.press('f3')
     time.sleep(1) 
     image = ImageGrab.grabclipboard()   
     image.save('somefile.png', 'PNG')
-
 
 if __name__ == "__main__":
     Screenshot()

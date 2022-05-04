@@ -39,6 +39,7 @@ def TextTranslate(to_lang,srcText,from_lang = 'auto'):
     :param srcText: need to translate texts
     :return dstTest: translated texts to aim langurge 
     """
+
     salt = random.randint(32768, 65536)
     sign = make_md5(appid + srcText + str(salt) + appkey)
 
@@ -50,6 +51,7 @@ def TextTranslate(to_lang,srcText,from_lang = 'auto'):
     r = requests.post(url, params=payload, headers=headers)
     result = r.json()
     words = ""
+    
     for item in result['trans_result']:
         words += (item.get('dst')+'\n')
     return words
