@@ -5,6 +5,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
 import json
+from typing import List
 
 from requests import delete
 import pyperclip
@@ -119,7 +120,7 @@ class ToolTip(object):
 def CreateToolTip(root,rootwidget,widget):
         toolTip = ToolTip(root,rootwidget,widget)
         def enter(event):
-            toolTip.hovershow("#FFFFDA")
+            toolTip.hovershow("#C0C0C0")
         def leave(event):
             toolTip.hoverhide("#FFFFFF")
         def click(event):
@@ -168,66 +169,58 @@ class history:
 
         #想要实现透明标题栏，成功了！！
         self.window.overrideredirect(True)
-        
+        pad = 40 #想要实现透明标题栏，成功了！！
         #创建画布
-        self.canvas= tk.Canvas(self.window,width = WinWidth,height=WinHeight, scrollregion=(0,0,WinWidth,WinHeight)) #
+        self.canvas= tk.Canvas(self.window,width = WinWidth,height=WinHeight, scrollregion=(0,0,WinWidth,WinHeight-pad)) #
 
         self.fm1 = ttk.Frame(self.canvas)
         self.fm2 = ttk.Frame(self.window,height=80)
       
-        pad = 40 #想要实现透明标题栏，成功了！！
+        #pad = 40 #想要实现透明标题栏，成功了！！
         #竖直滚动条
         self.vbar=tk.Scrollbar(self.canvas,
                   orient=tk.VERTICAL,
                   command=self.canvas.yview,
                   width=5) 
         self.canvas.config(yscrollcommand= self.vbar.set,bg="white",selectforeground="white",highlightthickness = 1)
-        #self.canvas.pack(side=TOP, fill=BOTH, expand=True)
-        self.canvas.place(x = 0, y = pad,width=WinWidth,height=WinHeight-pad) #放置canvas的位置  
-        self.vbar.place(x = 215,y= 0,width=5,height=WinHeight-pad)
-        self.canvas.create_window(((0,0)), window=self.fm1,anchor='nw')  #create_window       
        
+        self.canvas.place(x = 0, y = pad,width=WinWidth,height=WinHeight-pad) #放置canvas的位置  
+        self.vbar.place(x = 215,y= (-pad),width=5,height=(WinHeight+pad))
+        self.canvas.create_window(((0,0)), window=self.fm1,anchor='nw')  #create_window       
+        """
         self.btnSet = ttk.Button(self.fm2,
                         text='增加',
                         command=self.labelSetClick)
         self.btnClear = ttk.Button(self.fm2,
                           text='清空按钮',
                           command=self.labelClearClick)
+        """
         self.Tip = ttk.Label(self.fm2,text="点击历史，复制文本到剪贴板 ctrl+v 黏贴",wraplength = 150,font=("微软雅黑",8))
 
         #创建标题栏,想要实现透明标题栏，但是失败了
         self.Lab = ttk.Label(self.window, text='历史记录', font=('Microsoft Yahei', 12))
         self.Lab.pack(side=TOP,anchor=W,fill=X,expand=N)
-
+        #self.canvas.pack(side=TOP, fill=BOTH, expand=True)
         #两按键，用于调试  实际应用可注释 fm2，并将command函数重写
         #self.btnSet.pack(side=LEFT,anchor=W,fill=X,expand=YES)
         #self.btnClear.pack(side=LEFT,anchor=W,fill=X,expand=YES) 
         self.Tip.pack(side=TOP,anchor=W,fill=X,expand=YES) 
-        #创建菜单
-        """
-        self.menu = tk.Menu(self.window,
-            tearoff=False,
-            #bg="grey",
-            )
-        self.menu.add_command(label="置顶", command=self.ListItem_about("top"))
-        self.menu.add_command(label="删除", command=self.ListItem_about("del"))
-        """
-        self.fm1.bind("<Configure>",self.updateCanvas)
-        self.canvas.bind_all("<MouseWheel>",self.WheelCtrl)
-        self.fm2.pack(side=tk.BOTTOM, fill=X, expand=N)
-
+        
         #失焦后退出
         def out(event):
             self.window.destroy()
         self.window.bind("<FocusOut>",out)
 
         #遍历历史记录
-        
         for k,v in self.fileObj.dict.items():
             self.AddHistory(k,v)
         if(self.IsEmpty()):
             self.EmptyLabel = ttk.Label(self.fm1,anchor="center",text="空",wraplength = 150,font=("微软雅黑",12))
             self.EmptyLabel.place(x = 110,y=100)
+
+        self.fm1.bind("<Configure>",self.updateCanvas)
+        #self.fm1.pack(side=TOP, fill=X, expand=N)
+        self.fm2.pack(side=tk.BOTTOM, fill=X, expand=N)
         #获取焦点
         self.window.focus_set()
         self.window.mainloop()
@@ -244,16 +237,17 @@ class history:
     def WheelCtrl(self,event):
         """滚轮事件，绑定画布'"""
         self.fm2.forget()
-        if((len(HistoryList)*80)>WinHeight):
-            self.canvas.yview_scroll(int(-1*(event.delta/120)),"units") 
+        self.canvas.yview_scroll(int(-1*(event.delta/120)),"units") 
     
     def ListItem_about(self,cmd):
         """弹窗操作 置顶:'top',删除：'del'"""
 
     def updateCanvas(self,event):
         """铺满当前画布 少了这个就滚动不了"""
-        if((len(HistoryList)*80)>WinHeight):
-            self.canvas.configure(scrollregion=self.canvas.bbox("all"),width=200,height=200)
+        height = self.fm1.winfo_height()
+        if(height > (WinHeight-40)):
+            self.canvas.bind_all("<MouseWheel>",self.WheelCtrl)
+            self.canvas.configure(scrollregion=self.canvas.bbox("all"),width=WinWidth,height=200)
         pass
         
     def labelSetClick(self):
@@ -285,7 +279,7 @@ class history:
     def place(self,time,text):
         """在fm1中动态创建Text组件,time当前时间,text"""
         i = len(HistoryList)
-        exec('label'+str(i)+'=ttk.Label(self.fm1,text = text,background = "#FFFFF0",borderwidth= 10,takefocus=True,padding = 2,font=("微软雅黑",8))')
+        exec('label'+str(i)+'=ttk.Label(self.fm1,text = text,background = "#FFFFF0",wraplength = 210,borderwidth= 10,width = 215,takefocus=True,padding = 2,font=("微软雅黑",8))')
         """
         exec('label'+str(i)+'=tk.Text(self.fm1,background = "#FFFFF0",highlightcolor = "#696969",highlightthickness = 1,undo = True, height=4,font=("微软雅黑",8))')
         eval('label'+str(i)).tag_config('tag',foreground='DimGray',font =("微软雅黑",7) ) #设置tag即插入文字的大小,颜色等
@@ -295,11 +289,10 @@ class history:
         eval('label'+str(i)).unbind("<MouseWheel>")
         eval('label'+str(i))['state'] = 'disabled'
         """
-        eval('label'+str(i)).pack(side=TOP,anchor="w",fill=X,expand=N,pady = 2)
+        eval('label'+str(i)).pack(side=TOP,anchor="nw",fill=X,expand=N,pady = 2)
         self.SelectHistroy(eval('label'+str(i)))
         CreateToolTip(self,self.window,eval('label'+str(i)))
         HistoryList.append(eval('label'+str(i)))
-
 
     def DeleteHistory(self,text,Index = None):
         """在fm1中动态删除Text组件,Index:删除指定下标  默认删除列表尾节点"""
@@ -317,6 +310,7 @@ class history:
     def DeleteAll(self):
         """清除所有历史记录(面板) -- 仅用于测试历史窗口显示配合按键labelClearClick"""
         global HistoryList
+        """
         for history in HistoryList:
             if(HistoryList.index(history) not in HistoryRemind_List):
                 history.destroy()
@@ -324,14 +318,20 @@ class history:
                 for k in list(self.fileObj.dict): # 使用list强制copy d.keys()，避免pop出错
 	                if self.fileObj.dict[k] != history:
 		                self.fileObj.dict.pop(k)# 或者 del d[k] 
-        
+        """
+        for history in HistoryList:
+            history.destroy()
+        HistoryList = []
         self.fileObj.SaveRec()
 
     def DelAllData(self):
         """清除所有历史记录(文件)"""
+        """
         for k in list(self.fileObj.dict): # 使用list强制copy d.keys()，避免pop出错
             if HistoryList.index(self.fileObj.dict[k]) not in HistoryRemind_List:
                 self.fileObj.dict.pop(k)# 或者 del d[k] 
+        """
+        self.fileObj.dict = {}
         self.fileObj.SaveRec()
 
     def IsEmpty(self):

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
+from logging import root
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
 
 from PIL import ImageGrab
@@ -60,10 +61,7 @@ def OcrDisplayCallback(root,Edit1,Edit2):
     Edit1.insert(INSERT,Temptext)
     root.UpdateBg("请打开图片或截图","./res/image/background1.png")   
     #保存到历史记录
-    time = datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')
-    root.histroyF.dict[time] = Temptext
-    root.histroyF.SaveRec()
-    logging.debug("已保存历史记录\n"+Temptext)
+    
 
 
 def TransCallback(Edit1,Edit2,fm):
@@ -195,7 +193,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         print(s.v.get())
         current_lang = dec_languages.get(s.v.get())  
 
-    def Edit_about(s,action):
+    def Edit_about(s,action,event = None):
         '''option obtain "back","callback","clear","copy"."cut","paste",'''
         #撤销、重做
         
@@ -221,14 +219,17 @@ class _Main:  #调用SysTrayIcon的Demo窗口
                 traceback.print_exc()
 
         if(action == "cut"):
+            global root
             s.Edit2.event_generate('<<Cut>>')
             s.Edit1.event_generate('<<Cut>>')
             
         if(action == "copy"):
+            global root
             s.Edit1.event_generate('<<copy>>')
             s.Edit2.event_generate('<<copy>>')
             
         if(action == "Paste"):
+            global root
             s.Edit2.event_generate('<<Paste>>')
             s.Edit1.event_generate('<<Paste>>')
     #用来显示全屏幕截图并响应二次截图的窗口类
@@ -342,6 +343,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         if Itt.Transform_GT(Itt.High_precision, image):
             s.UpdateBg('请打开图片或截图',"./res/image/background2.png")
             s.varInFm1.set('识别完成，结果已复制到粘贴板')
+            Temptext = pyperclip.paste()
+            time = datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')
+            s.histroyF.dict[time] = Temptext
+            s.histroyF.SaveRec()
+            logging.debug("已保存历史记录\n"+Temptext)
         else:        
             s.varInFm1.set('未识别到文字信息')
         
@@ -349,6 +355,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         if Itt.Transform_GT(Itt.High_precision):
             s.UpdateBg('请打开图片或截图',"./res/image/background2.png")
             s.varInFm1.set('识别完成，结果已复制到粘贴板')
+            Temptext = pyperclip.paste()
+            time = datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')
+            s.histroyF.dict[time] = Temptext
+            s.histroyF.SaveRec()
+            logging.debug("已保存历史记录\n"+Temptext)
         else:
             s.varInFm1.set('未识别到文字信息')
         print(s.root.state())
@@ -436,13 +447,31 @@ class _Main:  #调用SysTrayIcon的Demo窗口
 
         '''创建一个弹出菜单'''
         
+        #右键 剪切复制黏贴
+        def callback1(event=None):
+            
+            s.Edit1.event_generate('<<Cut>>')
+            s.Edit2.event_generate('<<Cut>>')
+            
+        def callback2(event=None):
+        
+            s.Edit1.event_generate('<<copy>>')
+            s.Edit2.event_generate('<<copy>>')
+            
+        def callback3(event=None):
+            focus = s.root.focus_get()
+            if(focus == s.Edit1):
+                s.Edit1.event_generate('<<Paste>>')
+            if(focus == s.Edit2):
+                s.Edit2.event_generate('<<Paste>>')
+
         s.menu = tk.Menu(s.root,
             tearoff=False,
             #bg="grey",
             )
-        s.menu.add_command(label="剪切", command=s.Edit_about("cut"))
-        s.menu.add_command(label="复制", command=s.Edit_about("copy"))
-        s.menu.add_command(label="黏贴", command=s.Edit_about("paste"))
+        s.menu.add_command(label="剪切", command=callback1)
+        s.menu.add_command(label="复制", command=callback2)
+        s.menu.add_command(label="黏贴", command=callback3)
 
         s.Edit1.bind("<Button-3>", s.popup)                 # 绑定鼠标右键,执行popup函数
         s.Edit2.bind("<Button-3>", s.popup)               # 绑定鼠标右键,执行popup函数
