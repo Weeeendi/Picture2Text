@@ -1,12 +1,14 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
+from cgitb import enable
+from faulthandler import disable
 from logging import root
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
 
 from PIL import ImageGrab
 from time import sleep
-from MinIcon import SysTrayIcon
+from minIcon import SysTrayIcon
 from History  import *
 import pyperclip
 import os
@@ -236,6 +238,8 @@ class _Main:  #调用SysTrayIcon的Demo窗口
 
 
     def buttonCaptureClick(s):
+        """桌面截图函数
+        """
         #当前在截图.不支持最小化判断
         global Shareble
         Shareble = 0
@@ -267,6 +271,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         Shareble = 1
 
     def display(s):
+        """显示布局"""
         #Frame1
         s.B.pack(side=TOP,anchor=W,fill=X,expand=N)
         s.G.pack(side=TOP,anchor=W,fill=X,expand=N)
@@ -376,15 +381,32 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.Notice.configure(image=img,textvariable=s.varInFm1,compound="top")
         s.Notice.image = img
 
+    def changeTool_WithoutIntert(s,state):
+        if(state == 1):
+            s.B['state'] = 'normal'
+            s.G['state'] = 'normal'
+            s.D['state'] = 'normal'
+            s.TransButton['state'] = 'normal'
+        if(state == 0):
+            s.B['state'] = 'disable'
+            s.G['state'] = 'disable'
+            s.D['state'] = 'disable'
+            s.TransButton['state'] = 'disable'
+        
 
     def UpdateConnect(s):
         global disconnect
         if(isConnected() and disconnect):
             disconnect = 0 
             s.UpdateBg("请打开图片或截图","./res/image/background1.png")
+            s.root.unbind("<Shift-Alt-A>")
+            s.changeTool_WithoutIntert(True)
+            
         elif isConnected() == 0:
             disconnect = 1
             s.UpdateBg("当前无网络连接，请检查后重试","./res/image/background.png") 
+            s.changeTool_WithoutIntert(False)
+
         s.root.after(5000,s.UpdateConnect)       
             
     def center_window(s,width=300, height=200):
@@ -514,10 +536,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         #显示所有布局
         s.display()  
         '''快捷键'''                  
-        #s.root.bind("<Control-Button-1>",lambda:s.buttonCaptureClick())
-        
+        def quicklyKey(event):
+            s.buttonCaptureClick()
         s.root.bind("<Unmap>", lambda event: s.Hidden_window() if ((s.root.state() == 'iconic') and Shareble) else False) #窗口最小化判断，可以说是调用最重要的一步
         s.root.bind("<Map>",lambda event: s.exit() if(NeedExit) else False)
+        s.root.bind("<Shift-Alt-A>",quicklyKey)
         s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
         #定时刷新网络状态        
         s.UpdateConnect()
