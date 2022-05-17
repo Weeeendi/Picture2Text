@@ -5,6 +5,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
 import json
+from turtle import color
 from typing import List
 
 from requests import delete
@@ -198,7 +199,7 @@ class history:
         self.Tip = ttk.Label(self.fm2,text="点击历史，复制文本到剪贴板 ctrl+v 黏贴",wraplength = 150,font=("微软雅黑",8))
 
         #创建标题栏,想要实现透明标题栏，但是失败了
-        self.Lab = ttk.Label(self.window, text='历史记录', font=('Microsoft Yahei', 12))
+        self.Lab = ttk.Label(self.window, text='历史记录',foreground = "Gray", font=('Microsoft Yahei', 12))
         self.Lab.pack(side=TOP,anchor=W,fill=X,expand=N)
         #self.canvas.pack(side=TOP, fill=BOTH, expand=True)
         #两按键，用于调试  实际应用可注释 fm2，并将command函数重写
@@ -223,6 +224,7 @@ class history:
         self.fm2.pack(side=tk.BOTTOM, fill=X, expand=N)
         #获取焦点
         self.window.focus_set()
+        self.window.wait_window(self.window)
         self.window.mainloop()
 
     def ClickItem(event,self):
@@ -279,7 +281,7 @@ class history:
     def place(self,time,text):
         """在fm1中动态创建Text组件,time当前时间,text"""
         i = len(HistoryList)
-        exec('label'+str(i)+'=ttk.Label(self.fm1,text = text,background = "#FFFFF0",wraplength = 210,borderwidth= 10,width = 215,takefocus=True,padding = 2,font=("微软雅黑",8))')
+        exec('label'+str(i)+'=ttk.Label(self.fm1,text = text,background = "#FFFFFF",wraplength = 210,borderwidth= 10,width = 215,takefocus=True,padding = 2,font=("微软雅黑",8))')
         """
         exec('label'+str(i)+'=tk.Text(self.fm1,background = "#FFFFF0",highlightcolor = "#696969",highlightthickness = 1,undo = True, height=4,font=("微软雅黑",8))')
         eval('label'+str(i)).tag_config('tag',foreground='DimGray',font =("微软雅黑",7) ) #设置tag即插入文字的大小,颜色等
