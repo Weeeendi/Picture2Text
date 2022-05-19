@@ -21,7 +21,7 @@ import ImgTranText as Itt
 import TextTransAPI as TextT
 
 
-About = "图文精灵 \n版本号信息 v2.0 \n\n 一款小而美的Ocr软件\n该软件仅用于交流学习应用，禁止任何形式的商用行为" 
+About = "图文精灵 \t版本号 v2.0 \n该软件遵守 MIT 开源协议\nhttps://github.com/Weeeendi/Picture2Text" 
 Shareble = 1
 NeedExit = 0
 
@@ -32,6 +32,9 @@ current_lang = default_lang
 
 default_theme = "light"
 current_theme = default_theme
+
+main_windowHeight = 300
+main_windowWidth = 500
 
 disconnect = 0 
 
@@ -46,8 +49,6 @@ def message_askyesno(root):
     positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
     '''
     root.withdraw()  # ****实现主窗口隐藏
-    root.update()  # *********需要update一下
-    
     return (tk.messagebox.askyesno("提示","要执行此操作？"))
 
 def clearEdit(Editx):
@@ -63,8 +64,6 @@ def OcrDisplayCallback(root,Edit1,Edit2):
     Edit1.insert(INSERT,Temptext)
     root.UpdateBg("请打开图片或截图","./res/image/background1.png")   
     #保存到历史记录
-    
-
 
 def TransCallback(Edit1,Edit2,fm):
     clearEdit(Edit2)
@@ -79,8 +78,7 @@ src_languages = {"自动":"auto","英语":"en", "简中":"zh",  "日语":"jp", "
 dec_languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "spa",
               "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs","法语":"fra"}
 
-def showAbout():
-    tkinter.messagebox.showinfo(title='Topic', message= About)
+
 
 class MyCapture:
     def __init__(self, png, root):
@@ -307,7 +305,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
 
     def Hidden_window(s, icon = './res/image/icon.ico', hover_text = "图文精灵"):
         '''隐藏窗口至托盘区，调用SysTrayIcon的重要函数'''
-
+        
         #托盘图标右键菜单, 格式: ('name', None, callback),下面也是二级菜单的例子
         #24行有自动添加‘退出’，不需要的可删除
         
@@ -419,6 +417,21 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         y = (screen_height/2) - (height/2)
         s.root.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
+    def showAbout(s):
+        AboutObj = tk.Toplevel(s.root)
+        AboutObj.title("关于")
+        AboutObj.attributes("-toolwindow", 2) # 去掉窗口最大化最小化按钮，只保留关闭
+        icon = tk.PhotoImage(file = "./res/image/256x256.png")
+        AboutObj.Lb = ttk.Label(AboutObj,anchor='center',image=icon,text=About,foreground='grey', font=('Microsoft Yahei',8),compound="top")
+        x = max(s.root.winfo_x(),0)
+        y = max(s.root.winfo_y(),0)
+        AboutObj.geometry('%dx%d+%d+%d' % (250, 200,x+(main_windowWidth-250)/2,y+(main_windowHeight-200)/2))
+
+        AboutObj.Lb.pack()
+        AboutObj.focus_set()
+        AboutObj.mainloop()
+
+
     def main(s):
         #tk窗口
         s.root = tk.Tk()
@@ -527,7 +540,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.menu1.add_command(label="清空历史",command = lambda: s.histroy.DelAllData())
 
         s.menu1.add_separator()    
-        s.menu1.add_command(label="关于",command = showAbout)
+        s.menu1.add_command(label="关于",command = lambda:s.showAbout())
 
        # s.menubar.add_cascade(label="主题", menu = s.menu2)
        # s.menu2.add_radiobutton(label = "浅色",command=lambda:set_theme(light))
@@ -544,7 +557,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
         #定时刷新网络状态        
         s.UpdateConnect()
-        s.center_window(winWidth,winHeight)
+        s.center_window(main_windowWidth,main_windowHeight)
         s.root.iconbitmap('./res/image/icon.ico') 
         s.root.mainloop()
 

@@ -25,8 +25,7 @@ WinHeight = 400
 
 selectEditCont = ''
 
-class RecordHty():
-    
+class RecordHty():    
     def __init__(self,file) -> None:
         """历史数据初始化"""
         self.file = file
