@@ -328,7 +328,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.SysTrayIcon.destroy(exit = 0)
 
 
-    def exit(s, _sysTrayIcon=None):
+    def exit(s):
         s.root.destroy()
         print ('exit...')
         os._exit(0) 
@@ -336,11 +336,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
     def beforeExit(s):
         global NeedExit
         NeedExit = 1
-        #sleep(1.0)
         s.resume()
-        #s.exit()
+
 
     def Catch_chipboard(s):
+        """将截图得到的图片，转为文字"""
         file_path = './res/image/somefile.png'
         image = Itt.get_file_content(file_path)
         if Itt.Transform_GT(Itt.High_precision, image):
@@ -393,6 +393,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         
 
     def UpdateConnect(s):
+        """更新网络状态"""
         global disconnect
         if(isConnected() and disconnect):
             disconnect = 0 
@@ -408,6 +409,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.root.after(5000,s.UpdateConnect)       
             
     def center_window(s,width=300, height=200):
+        """将窗口屏幕居中"""
         # get screen width and height
         screen_width = s.root.winfo_screenwidth()
         screen_height = s.root.winfo_screenheight()
@@ -418,6 +420,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         s.root.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
     def showAbout(s):
+        """显示关于"""
         AboutObj = tk.Toplevel(s.root)
         AboutObj.title("关于")
         AboutObj.attributes("-toolwindow", 2) # 去掉窗口最大化最小化按钮，只保留关闭

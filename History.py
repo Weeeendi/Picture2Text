@@ -140,8 +140,6 @@ class history:
     def __init__(self,fileObj,tk_window = None):
         '''
         fileObj      历史文件存储结构体 RecordHty类
-        hover_text   鼠标停留在图标上方时显示的文字
-        menu_options 右键菜单，格式: (('a', None, callback), ('b', None, (('b1', None, callback),)))
         tk_window    传递Tk窗口，s.root，用于单击图标显示窗口
         '''
         self.fileObj = fileObj
@@ -278,7 +276,7 @@ class history:
         self.place(time,text)
     
     def place(self,time,text):
-        """在fm1中动态创建Text组件,time当前时间,text"""
+        """在fm1中动态创建Label组件,time当前时间,text"""
         i = len(HistoryList)
         exec('label'+str(i)+'=ttk.Label(self.fm1,text = text,background = "#FFFFFF",wraplength = 210,borderwidth= 10,width = 215,takefocus=True,padding = 2,font=("微软雅黑",8))')
         """

@@ -10,7 +10,6 @@ from enum import auto
 from importlib.machinery import WindowsRegistryFinder
 import requests
 import random
-import json
 from hashlib import md5
 
 # Set your own appid/appkey.
