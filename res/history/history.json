@@ -1,1 +1,1 @@
-{"2022-05-19 11:44:13": "#define MyAppName\"\u56fe\u6587\u7cbe\u7075n\n#define My.ppVersion\"2.On\n#define MyAppPublisher \"WD Tech.Inc\"\n#define MyAppExeName\"\u56fe\u6587\u7cbe\u7075v20.exen\n#define MyApp.\u9a6cssocName MyAppName+File\n#define MyAppAssocExt \".myp\"\n#define MyApp.ssocKey StringChange(MyAppAssocName,n\",nn)+MyAppAssocExt\n"}
+{}

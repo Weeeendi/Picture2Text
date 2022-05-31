@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-from cgitb import enable
-from faulthandler import disable
+import win32api, win32print, win32gui
 from logging import root
 from tkinter.constants import BOTH, E, END, INSERT, LEFT, N, TOP, W, X, YES
 
@@ -19,7 +18,7 @@ import tkinter.messagebox
 import traceback
 import ImgTranText as Itt
 import TextTransAPI as TextT
-
+import ctypes
 
 About = "图文精灵 \t版本号 v2.0 \n该软件遵守 MIT 开源协议\nhttps://github.com/Weeeendi/Picture2Text" 
 Shareble = 1
@@ -78,6 +77,14 @@ src_languages = {"自动":"auto","英语":"en", "简中":"zh",  "日语":"jp", "
 dec_languages = {"英语":"en", "简中":"zh",  "日语":"jp", "西班牙语": "spa",
               "韩语":"kor",  "繁中":"cht",  "意大利语":"it", "捷克语":"cs","法语":"fra"}
 
+def get_real_resolution():
+	"""获取真实的分辨率"""
+	#hDC = win32gui.GetDC(0)
+	# 横向分辨率
+	w =win32api.GetSystemMetrics(0)
+	# 纵向分辨率
+	h =win32api.GetSystemMetrics(1)
+	return w,h
 
 
 class MyCapture:
@@ -86,9 +93,15 @@ class MyCapture:
         self.X = tkinter.IntVar(value=0)
         self.Y = tkinter.IntVar(value=0)
         #屏幕尺寸
-        screenWidth = root.winfo_screenwidth()
-        screenHeight = root.winfo_screenheight()
-
+        #screenWidth = root.winfo_screenwidth()
+        #screenHeight = root.winfo_screenheight()
+        #解决windows缩放问题
+        
+        user32 = ctypes.windll.user32
+        user32.SetProcessDPIAware(2)
+        [screenWidth, screenHeight] = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
+        
+        #screenWidth,screenHeight = get_real_resolution()
         #创建顶级组件容器
         self.top = tkinter.Toplevel(
             root, width=screenWidth, height=screenHeight)
@@ -148,8 +161,7 @@ class MyCapture:
             #弹出保存截图对话框
             file_path = './res/image/somefile.png'
             pic.save(file_path, 'PNG')
-            sleep(1)
-
+            sleep(0.1)
             '''
             fileName = tkinter.filedialog.asksaveasfilename(
                 title='保存截图', filetypes=[('image', '*.jpg *.png')])
@@ -258,9 +270,13 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         im.close()
         #显示全屏幕截图
         w = MyCapture(filename,s.root)
+        
         s.G.wait_window(w.top)
         #截图结束，恢复主窗口，并删除临时的全屏幕截图文件
-        os.remove(filename)
+        try:
+            os.remove(filename)
+        except Exception as e:
+            logging.debug(e)
         s.Catch_chipboard()
         if(isNormal):
             s.root.deiconify()
@@ -437,6 +453,11 @@ class _Main:  #调用SysTrayIcon的Demo窗口
 
     def main(s):
         #tk窗口
+        #解决windows缩放问题
+        
+        user32 = ctypes.windll.user32
+        user32.SetProcessDPIAware(2)
+       
         s.root = tk.Tk()
         s.root.title('图文精灵 v2.0')
 
@@ -448,7 +469,7 @@ class _Main:  #调用SysTrayIcon的Demo窗口
         #t.theme_use('classic')
         s.Fmstyle = ttk.Style()
         s.Fmstyle.configure('1.TFrame',background='DarkGray',foreground = "White")
-
+        
         s.fm1 = ttk.Frame(s.root,style='1.TFrame')
         s.fm2 = ttk.Frame(s.root,style='1.TFrame')
         s.fm3 = ttk.Frame(s.root,style='1.TFrame')
