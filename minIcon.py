@@ -21,7 +21,7 @@ class SysTrayIcon (object):
         s.on_quit = on_quit
         s.root = tk_window
 
-        menu_options = menu_options + (('退出', None, s.QUIT),)
+        menu_options = menu_options# + (('退出', None, s.QUIT),)
         s._next_action_id = s.FIRST_ID
         s.menu_actions_by_id = set()
         s.menu_options = s._add_ids_to_menu_options(list(menu_options))
@@ -39,7 +39,7 @@ class SysTrayIcon (object):
         wc = win32gui.WNDCLASS()
         wc.hInstance = win32gui.GetModuleHandle(None)
         wc.lpszClassName = s.window_class_name
-        wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW;
+        wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW
         wc.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
         wc.hbrBackground = win32con.COLOR_WINDOW
         wc.lpfnWndProc = message_map #也可以指定wndproc.
@@ -198,6 +198,8 @@ class SysTrayIcon (object):
         else:
             menu_action()
 
+Shareble = 1
+
 class _Main:  #调用SysTrayIcon的Demo窗口
     def __init__(s):
         s.SysTrayIcon  = None  # 判断是否打开系统托盘图标
@@ -205,9 +207,9 @@ class _Main:  #调用SysTrayIcon的Demo窗口
     def main(s):
         #tk窗口
         s.root = tk.Tk()
-        s.root.bind("<Unmap>", lambda event: s.Hidden_window() if (s.root.state() == 'iconic') else False) #窗口最小化判断，可以说是调用最重要的一步
+        s.root.bind("<Unmap>", lambda event: s.Hidden_window() if (s.root.state() == 'iconic' and Shareble) else False) #窗口最小化判断，可以说是调用最重要的一步
         s.root.protocol('WM_DELETE_WINDOW', s.exit) #点击Tk窗口关闭时直接调用s.exit，不使用默认关闭
-        s.root.resizable(0,0)  #锁定窗口大小不能改变
+        ##s.root.resizable(0,0)  #锁定窗口大小不能改变
         s.root.mainloop()
     
     def switch_icon(s, _sysTrayIcon, icon = 'D:\\2.ico'):

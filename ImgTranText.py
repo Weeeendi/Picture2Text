@@ -1,3 +1,4 @@
+from cgi import print_form
 from aip import AipOcr
 
 import pyperclip
@@ -36,8 +37,12 @@ parm:选择是高精度还是低精度 1.高精度 0。低精度
 """
 
 
-def Transform_GT(accuracy_option, image=0):
-
+def Transform_GT(accuracy_option, image=None):
+    r"""OCR image.
+    :param accuracy_option: 1:high definition 2:Normal definition
+    :param image: If equals None means Open PicFile,or Transfer input 
+    :return dstTest: translated texts form image
+    """
     Recognize = accuracy_option
 
     """
@@ -54,7 +59,7 @@ def Transform_GT(accuracy_option, image=0):
     root = tk.Tk()
     root.withdraw()
     ''' If there is no incoming image data, the picture needs to be opened. '''
-    if image == 0:
+    if image == None:
         file_path = filedialog.askopenfilename(
             title='打开需要识别的图片',
             filetypes=[('JPG', '*.jpg'), ('BMP', '*.bmp'), ('PNG', '*.png')])  # 获取文件的打开路径
@@ -68,8 +73,9 @@ def Transform_GT(accuracy_option, image=0):
 
     """ Generasion object Calling """
     try:
-        client.basicGeneral(image)
-    except TypeError:
+        ret = client.basicGeneral(image)
+    except Exception as e:
+        print(e)
         return 0
     """ IF there are optional parameter  """
     options = {}
@@ -83,7 +89,11 @@ def Transform_GT(accuracy_option, image=0):
         word = client.basicGeneral(image, options)
     elif Recognize == 1:
         word = client.basicAccurate(image, options)
-    print("识别结果如下，共识别出 {[words_result_num]} 段文字".format(word))
+    try:
+        print("识别结果如下，共识别出 {[words_result_num]} 段文字".format(word))
+    except KeyError:
+        print("未识别到文字信息")
+        return 0
     data_layer = "words_result"
 
     """创建一个空字符串来存储结果"""
